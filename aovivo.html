@@ -167,6 +167,7 @@ h3{margin:14px 0 6px;font-size:.95rem}
   function pad(s, k) { s = String(s); while (s.length < k) s = '0' + s; return s; }
   function fmtN(n) { return n == null ? '—' : NF.format(n); }
   function fmtP(x) { return x == null || isNaN(x) ? '—' : NP1.format(x) + '%'; }
+  function fmtP2(x) { return x == null || isNaN(x) ? '—' : NP2.format(x) + '%'; }   // números grandes: duas casas, como o TSE
   function fmtPP(d) { return d == null || isNaN(d) ? '—' : (d > 0.05 ? '+' : d < -0.05 ? '−' : '') + NP1.format(Math.abs(d)) + ' p.p.'; }
   function pct(v, k) { return v && v[I.validos] > 0 ? 100 * v[I[k]] / v[I.validos] : null; }
   function somar(vs) { var o = [0, 0, 0, 0, 0, 0, 0, 0]; vs.forEach(function (v) { if (v) for (var i = 0; i < 8; i++) o[i] += v[i]; }); return o; }
@@ -655,7 +656,7 @@ h3{margin:14px 0 6px;font-size:.95rem}
     ['a', 'b'].forEach(function (q) {
       var f = FIN[q], p2 = pct(v2, q), p1 = pct(v1, q);
       h.push('<div class="fin" style="--c:var(--cor-' + q + ')"><div class="nm">' + esc(f.nome) + ' <span class="rot">(' + esc(f.sg) + ')</span></div>' +
-        '<div class="pc">' + (p2 == null ? '—' : fmtP(p2)) + '</div><div class="vt">' + (v2 ? fmtN(v2[I[q]]) + ' votos · ' : '') + '1º turno: ' + fmtP(p1) + '</div></div>');
+        '<div class="pc">' + (p2 == null ? '—' : fmtP2(p2)) + '</div><div class="vt">' + (v2 ? fmtN(v2[I[q]]) + ' votos · ' : '') + '1º turno: ' + fmtP2(p1) + '</div></div>');
     });
     h.push('</div>');
     h.push('<h3>Do 1º para o 2º turno</h3><div class="regua">' + svgRegua({ a: pct(v1, 'a'), b: pct(v1, 'b') }, { a: pct(v2, 'a'), b: pct(v2, 'b') }) + '</div>');
