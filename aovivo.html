@@ -78,6 +78,8 @@ h3{margin:14px 0 6px;font-size:.95rem}
 .nota{font-size:.78rem;color:var(--sub);margin:6px 0 0}
 .sem-mapa{padding:24px;text-align:center;color:var(--sub);border:1px dashed var(--linha);border-radius:12px}
 .abas-cel{display:none}
+.nav{display:flex;flex-direction:column;gap:4px;margin:10px 0 4px}
+.nav-sel{min-height:44px;border-radius:10px;border:1px solid var(--linha);background:var(--card);color:var(--txt);padding:0 10px;font-size:16px;max-width:100%}
 .ponto{display:inline-block;width:10px;height:10px;border-radius:5px;margin-right:5px}
 @media (max-width:760px){
   .cab{padding:8px 12px}
@@ -514,7 +516,9 @@ h3{margin:14px 0 6px;font-size:.95rem}
       }
       var ab;
       try { ab = lerAb(r.json, url); } catch (e) { formato(e); agendar(PERIODO); return; }
-      AB.br = ab; AO.comecou = true; AO.estado = 'apurando';
+      // o arquivo geral do 2º turno pode existir antes das 17h, zerado: só é "apurando" com alguma seção apurada
+      AB.br = ab; AO.comecou = true;
+      AO.estado = Object.keys(ab.lug).some(function (k) { return ab.lug[k].st > 0; }) ? 'apurando' : 'antes';
       var ps = [];
       // arquivos detalhados só depois que o geral existe, e só os que mudaram
       Object.keys(ab.lug).forEach(function (k) { var e = ab.lug[k]; if (e.st > 0 && AO.marcas[k] !== e.marca) ps.push(pegarU(k, e.marca)); });
@@ -629,7 +633,7 @@ h3{margin:14px 0 6px;font-size:.95rem}
     $('migalhas').innerHTML = h.join('');
   }
   function linhaApur(x) {
-    if (!x || !x.ts) return '<p class="rot">' + (AO.estado === 'antes' || !AO.comecou ? 'A apuração do 2º turno ainda não começou.' : 'Ainda sem seções apuradas aqui.') + '</p>';
+    if (!x || !x.ts || !x.st) return '<p class="rot">' + (AO.estado === 'antes' || !AO.comecou ? 'A apuração do 2º turno ainda não começou.' : 'Ainda sem seções apuradas aqui.') + '</p>';
     var p = 100 * x.st / x.ts;
     return '<div class="barra" role="progressbar" aria-valuenow="' + p.toFixed(1) + '" aria-valuemin="0" aria-valuemax="100"><i style="width:' + Math.min(100, p).toFixed(2) + '%"></i></div>' +
       '<p class="rot">Seções apuradas: <b>' + (p >= 100 ? '100%' : NP2.format(p) + '%') + '</b> (' + fmtN(x.st) + ' de ' + fmtN(x.ts) + ')' + (x.soma ? ' · soma dos lugares já recebidos' : '') + '</p>';
@@ -651,6 +655,7 @@ h3{margin:14px 0 6px;font-size:.95rem}
   function renderResumo() {
     var k = st.lugar, n = nivel(k), x = vivo(k), v1 = base(k, 't1'), v2 = x && x.v;
     var h = ['<p class="rot">' + esc(NOME_NIVEL[n] || '') + (v1 ? ' · ' + fmtN(v1[I.aptos]) + ' eleitores' : '') + (n === 'zz' ? ' · fora do mapa' : '') + '</p><h2>' + esc(nomeDe(k)) + '</h2>'];
+    h.push(navegacao(k));
     h.push(linhaApur(x));
     h.push('<div class="fins">');
     ['a', 'b'].forEach(function (q) {
@@ -735,6 +740,9 @@ h3{margin:14px 0 6px;font-size:.95rem}
     }
     var u = ufDe(k);
     if (u && !ufCarregada(u)) return;
+    // no celular o mapa fica numa aba escondida: desenhado escondido, ele fica com tamanho zero e se enquadra errado
+    if (el.offsetWidth === 0) return;
+    if (MAPA) MAPA.invalidateSize();
     if (!MAPA) {
       el.innerHTML = '';
       MAPA = L.map('mapa', { preferCanvas: true, zoomSnap: 0.25, attributionControl: false, scrollWheelZoom: true });
@@ -823,6 +831,7 @@ h3{margin:14px 0 6px;font-size:.95rem}
         '<td class="n">' + (l.apur == null ? '—' : l.apur >= 100 ? '100%' : NP1.format(l.apur) + '%') + '</td><td class="n">' + fmtP(l.pa) + '</td><td class="n">' + fmtP(l.pb) + '</td><td class="n">' + fmtPP(l.dif) + '</td><td class="n">' + fmtN(l.aptos) + '</td></tr>');
     });
     h.push('</tbody></table></div>');
+    if (n === 'br' || n === 'reg') h.push('<p class="nota"><b>Regiões intermediárias e imediatas, municípios e regiões metropolitanas</b> ficam dentro de cada estado: toque no nome do estado.</p>');
     if (total > mostrar.length) h.push('<p class="nota">Mostrando ' + mostrar.length + ' de ' + total + '. <button class="btn" data-acao="todos">Mostrar todos</button></p>');
     h.push('<p class="nota">Mudança = percentual de ' + esc(FIN.a.nome) + ' no 2º turno menos o da eleição escolhida, só nos lugares 100% apurados. Percentuais sobre os votos válidos.</p>');
     $('lista').innerHTML = h.join('');
@@ -831,7 +840,21 @@ h3{margin:14px 0 6px;font-size:.95rem}
     document.body.setAttribute('data-aba', st.aba);
     var bs = document.querySelectorAll('#abas-cel [data-aba]');
     for (var i = 0; i < bs.length; i++) { if (bs[i].getAttribute('data-aba') === st.aba) bs[i].setAttribute('aria-current', 'page'); else bs[i].removeAttribute('aria-current'); }
-    if (st.aba === 'mapa' && MAPA) RELOGIO.depois(50, function () { MAPA.invalidateSize(); });
+    // ao mostrar a aba do mapa: desenha agora, já com o tamanho de verdade, e reenquadra
+    if (st.aba === 'mapa' && ABA_ANTES !== 'mapa') { QUADRO = ''; renderMapa(); }
+    ABA_ANTES = st.aba;
+  }
+  var ABA_ANTES = null;
+  // Resumo: caixa para abrir um lugar de dentro (estado, município…), para quem não usa o mapa nem a lista
+  var ARTIGO = { reg: 'uma Grande Região', uf: 'um estado', int: 'uma região intermediária', ime: 'uma região imediata', rm: 'uma região metropolitana', mun: 'um município' };
+  function navegacao(k) {
+    var n = nivel(k), ver = n === 'mun' ? 'mun' : n === 'zz' ? 'uf' : st.ver, lista = itens(k, ver).filter(function (x) { return x !== k; });
+    if (!lista.length) return '';
+    lista.sort(function (p, q) { return nomeDe(p).localeCompare(nomeDe(q), 'pt-BR'); });
+    var rot = (n === 'mun' ? 'Abrir outro município' : 'Abrir ' + ARTIGO[ver]) + (n === 'br' ? ' do Brasil' : n === 'mun' || n === 'zz' ? '' : ' de ' + nomeDe(k));
+    return '<label class="nav"><span class="rot">' + esc(rot) + '</span><select class="nav-sel" data-nav="1"><option value="">Escolha…</option>' +
+      lista.map(function (x) { return '<option value="' + esc(x) + '">' + esc(nomeDe(x)) + '</option>'; }).join('') + '</select></label>' +
+      (n === 'br' || n === 'reg' ? '<p class="nota">Dentro de cada estado: regiões intermediárias e imediatas, municípios e regiões metropolitanas.</p>' : '');
   }
 
   // ======================================================================
@@ -872,6 +895,10 @@ h3{margin:14px 0 6px;font-size:.95rem}
       else if (v === 'tema') { st.tema = st.tema === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', st.tema); render(); }
       else if (v === 'todos') { st.todos = true; render(); }
     }
+  });
+  document.addEventListener('change', function (ev) {
+    var t = ev.target;
+    if (t && t.getAttribute && t.getAttribute('data-nav') != null && t.value) ir(t.value);
   });
   document.addEventListener('input', function (ev) {
     var t = ev.target;
