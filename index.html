@@ -1,0 +1,916 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Apuração ao vivo · 2º turno 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{--bg:#f4f1ea;--card:#fffdf8;--txt:#2a3441;--sub:#5b6573;--linha:#e2dccf;--linha2:#efe9dc;--acento:#3b6f8f;--acento-tx:#fffdf8;--chip:#e8e2d4;--neutro-bg:#ece8df;--realce:#3d4752;--cor-a:#3b6f8f;--cor-b:#d9822b;--ruim:#b0412e;color-scheme:light}
+:root[data-theme="dark"]{--bg:#1c2229;--card:#252c35;--txt:#ebe6dc;--sub:#a9b2bd;--linha:#38424e;--linha2:#2f3843;--acento:#86b5d3;--acento-tx:#14202a;--chip:#323b46;--neutro-bg:#323b46;--realce:#e3e7ec;--cor-a:#6f9ec0;--cor-b:#e3a35f;--ruim:#f0937f;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:'Public Sans',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:16px;line-height:1.4}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--acento);outline-offset:2px}
+.cab{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:10px 24px;background:var(--card);border-bottom:1px solid var(--linha)}
+.cab-id{min-width:0;flex:1 1 300px}
+.cab-id h1{margin:0;font-size:1.1rem;font-weight:800}
+.cab-id p{margin:2px 0 0;font-size:.8rem;color:var(--sub)}
+.cab-acoes{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.estado{font-size:.82rem;color:var(--sub);display:flex;align-items:center;gap:6px}
+.bolinha{width:10px;height:10px;border-radius:5px;background:var(--sub);display:inline-block}
+.bolinha.viva{background:#2f7d4f;animation:pisca 2s infinite}
+@keyframes pisca{50%{opacity:.35}}
+.btn{min-height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--linha);background:var(--card)}
+.btn-icone{width:44px;height:44px;border:1px solid var(--linha);border-radius:22px;background:var(--card)}
+.fonte{margin:12px 24px 0;padding:10px 14px;border-radius:12px;background:var(--neutro-bg);font-size:.85rem}
+.aviso{margin:8px 24px 0;padding:10px 14px;border-radius:12px;border:1px solid var(--ruim);color:var(--txt);background:var(--card);font-size:.85rem}
+.migalhas{display:flex;flex-wrap:wrap;align-items:center;gap:2px 4px;margin:12px 24px 0;font-size:.9rem}
+.migalhas button{border:0;background:none;color:var(--acento);font-weight:600;min-height:44px;padding:0 4px;text-decoration:underline}
+.migalhas .aqui{font-weight:800;padding:0 4px}
+.migalhas .sep{color:var(--sub)}
+.migalhas .niv{font-size:.7rem;color:var(--sub);text-transform:uppercase;letter-spacing:.03em}
+.tela{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:16px;padding:12px 24px 32px;max-width:1400px;margin:0 auto}
+.cartao{background:var(--card);border:1px solid var(--linha);border-radius:16px;padding:16px;min-width:0}
+.painel-lista{grid-column:1/-1}
+h2{margin:0;font-size:1.25rem;font-weight:800}
+h3{margin:14px 0 6px;font-size:.95rem}
+.rot{font-size:.8rem;color:var(--sub);margin:2px 0 0}
+.barra{height:10px;border-radius:5px;background:var(--chip);overflow:hidden;margin:6px 0 2px}
+.barra i{display:block;height:100%;background:var(--acento)}
+.fins{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-top:12px}
+.fin{border-radius:12px;padding:10px 12px;background:var(--bg);border-top:4px solid var(--c)}
+.fin .nm{font-weight:700;font-size:.92rem}
+.fin .pc{font-size:1.7rem;font-weight:800;line-height:1.1;margin:4px 0 0;font-variant-numeric:tabular-nums}
+.fin .vt{font-size:.78rem;color:var(--sub)}
+.regua{margin-top:4px}
+.regua svg{width:100%;height:auto;display:block}
+.regua text{fill:var(--sub);font-size:11px;font-family:inherit}
+.justa{margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--neutro-bg);font-size:.85rem}
+.justa p{margin:0 0 6px}
+.tab{width:100%;border-collapse:collapse;font-size:.86rem}
+.tab th{font-size:.74rem;color:var(--sub);font-weight:600;text-align:left;border-bottom:1px solid var(--linha);padding:6px 5px}
+.tab td{border-bottom:1px solid var(--linha2);padding:6px 5px;vertical-align:middle}
+.tab .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tab th button{border:0;background:none;color:var(--sub);font-weight:600;font-size:.74rem;padding:6px 0;min-height:32px;text-align:inherit}
+.tab th button[aria-sort]{color:var(--txt);font-weight:800}
+.tab td button{border:0;background:none;color:var(--acento);font-weight:600;padding:6px 0;min-height:36px;text-align:left;text-decoration:underline}
+.tab tr.sel td{background:var(--linha2)}
+.tab-rola{max-height:560px;overflow:auto}
+.tab-x{overflow-x:auto;max-width:100%}
+.tab small{display:block;color:var(--sub);font-size:.72rem}
+.tab .eleicao{white-space:nowrap}
+.seg{display:inline-flex;flex-wrap:wrap;gap:2px;background:var(--chip);border-radius:12px;padding:4px}
+.seg button{min-height:40px;padding:0 12px;border:0;border-radius:9px;background:transparent;color:var(--sub);font-size:.86rem}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--txt);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.ctl .rot{margin:0}
+.busca{min-height:44px;border-radius:10px;border:1px solid var(--linha);background:var(--card);padding:0 10px;font-size:16px;min-width:0;flex:1 1 180px;max-width:320px}
+.mapa{height:520px;border-radius:12px;background:var(--bg)}
+.leaflet-container{background:var(--bg);font-family:inherit}
+.leg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.78rem;color:var(--sub);margin-top:8px}
+.leg span{display:inline-flex;align-items:center;gap:5px}
+.leg i{width:14px;height:14px;border-radius:3px;display:inline-block}
+.nota{font-size:.78rem;color:var(--sub);margin:6px 0 0}
+.sem-mapa{padding:24px;text-align:center;color:var(--sub);border:1px dashed var(--linha);border-radius:12px}
+.abas-cel{display:none}
+.ponto{display:inline-block;width:10px;height:10px;border-radius:5px;margin-right:5px}
+@media (max-width:760px){
+  .cab{padding:8px 12px}
+  .cab-id h1{font-size:1rem}
+  .fonte,.aviso,.migalhas{margin-left:12px;margin-right:12px}
+  .tela{display:block;padding:8px 12px 84px}
+  .tela>section{display:none}
+  body[data-aba="resumo"] .tela>[data-sec="resumo"],body[data-aba="mapa"] .tela>[data-sec="mapa"],body[data-aba="lista"] .tela>[data-sec="lista"]{display:block}
+  .mapa{height:calc(100vh - 330px);min-height:280px}
+  .abas-cel{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:1000;background:var(--card);border-top:1px solid var(--linha);padding:4px 4px calc(4px + env(safe-area-inset-bottom))}
+  .abas-cel button{flex:1;min-height:52px;border:0;background:none;color:var(--sub);font-size:.85rem;border-radius:10px}
+  .abas-cel button[aria-current="page"]{color:var(--acento);font-weight:800;background:var(--bg)}
+  .tab-rola{max-height:none}
+  html,body{overflow-x:hidden}
+  .fin .pc{font-size:1.4rem}
+}
+</style>
+</head>
+<body data-aba="resumo">
+<header class="cab">
+  <div class="cab-id"><h1>Apuração ao vivo · Presidente · 2º turno de 2026</h1><p id="cab-sub">Carregando…</p></div>
+  <div class="cab-acoes"><span id="estado" class="estado"></span><button class="btn" data-acao="atualizar">Atualizar agora</button><button class="btn-icone" data-acao="tema" aria-label="Trocar tema claro/escuro">◐</button></div>
+</header>
+<div id="fonte" class="fonte">Carregando a base…</div>
+<div id="aviso" class="aviso" hidden></div>
+<nav id="migalhas" class="migalhas" aria-label="Caminho"></nav>
+<main class="tela">
+  <section class="cartao" id="resumo" data-sec="resumo"></section>
+  <section class="cartao" data-sec="mapa"><div id="mapa-ctl"></div><div id="mapa" class="mapa"></div><div id="legenda"></div></section>
+  <section class="cartao painel-lista" data-sec="lista"><div id="lista-ctl"></div><div id="lista"></div></section>
+</main>
+<nav class="abas-cel" id="abas-cel" aria-label="Partes do painel">
+  <button data-aba="resumo" aria-current="page">Resumo</button><button data-aba="mapa">Mapa</button><button data-aba="lista">Lista</button>
+</nav>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script id="app">
+(function () {
+  'use strict';
+  // ======================================================================
+  // Configuração
+  // ======================================================================
+  var OPC = window.AOVIVO_OPCOES || {};
+  var Q = new URLSearchParams(OPC.busca != null ? OPC.busca : location.search);
+  var MODO = Q.get('demo') ? 'demo' : Q.get('ensaio') ? 'ensaio' : 'aovivo';
+  var TSE_RAIZ = 'https://resultados.tse.jus.br/oficial';
+  var PASTA = OPC.pasta || 'aovivo_dados/';
+  // reserva (sem a base): os mesmos códigos do ele-c.json do TSE
+  var PADRAO = { ciclo: 'ele2026', t1: '6257', t2: '6258', cargo: '0001', a: '22', b: '13' };
+  var PERIODO = MODO === 'demo' ? 3000 : 60000;     // de quanto em quanto tempo olha o TSE (o TSE renova a cada ~50 s)
+  var ESPERA_ANTES = MODO === 'demo' ? 3000 : 120000; // antes de a apuração começar: uma consulta a cada 2 min
+  var POR_SEG = 9, SIMULT = 3, MAX_404 = 5, PAUSA_404 = 5 * 60000;
+  var RELOGIO = OPC.relogio || { agora: function () { return Date.now(); }, depois: function (ms, f) { return setTimeout(f, ms); } };
+  var I = { aptos: 0, comp: 1, validos: 2, brancos: 3, nulos: 4, a: 5, b: 6, outros: 7 };
+  var UF_REG = { AC: 'N', AL: 'NE', AM: 'N', AP: 'N', BA: 'NE', CE: 'NE', DF: 'CO', ES: 'SE', GO: 'CO', MA: 'NE', MG: 'SE', MS: 'CO', MT: 'CO', PA: 'N', PB: 'NE', PE: 'NE', PI: 'NE', PR: 'S', RJ: 'SE', RN: 'NE', RO: 'N', RR: 'N', RS: 'S', SC: 'S', SE: 'NE', SP: 'SE', TO: 'N' };
+  var NOME_UF = { AC: 'Acre', AL: 'Alagoas', AM: 'Amazonas', AP: 'Amapá', BA: 'Bahia', CE: 'Ceará', DF: 'Distrito Federal', ES: 'Espírito Santo', GO: 'Goiás', MA: 'Maranhão', MG: 'Minas Gerais', MS: 'Mato Grosso do Sul', MT: 'Mato Grosso', PA: 'Pará', PB: 'Paraíba', PE: 'Pernambuco', PI: 'Piauí', PR: 'Paraná', RJ: 'Rio de Janeiro', RN: 'Rio Grande do Norte', RO: 'Rondônia', RR: 'Roraima', RS: 'Rio Grande do Sul', SC: 'Santa Catarina', SE: 'Sergipe', SP: 'São Paulo', TO: 'Tocantins' };
+  var REGIOES = { N: 'Norte', NE: 'Nordeste', SE: 'Sudeste', S: 'Sul', CO: 'Centro-Oeste' };
+  var NOME_NIVEL = { br: 'País', reg: 'Grande Região', uf: 'Estado', int: 'Região intermediária', ime: 'Região imediata', rm: 'Região metropolitana', mun: 'Município', zon: 'Zona eleitoral', zz: 'Exterior' };
+  var PLURAL = { reg: 'Grandes Regiões', uf: 'Estados', int: 'Intermediárias', ime: 'Imediatas', rm: 'Regiões metropolitanas', mun: 'Municípios', zon: 'Zonas' };
+  // cores: finalistas com a paleta dos itens do projeto; 3 tons pela vantagem (< 5, 5–15, ≥ 15 p.p.)
+  var TONS = { a: ['#b9cfdd', '#77a0bb', '#3b6f8f'], b: ['#f2d0aa', '#e6a866', '#d9822b'] };
+  var DIV = ['#b4541f', '#d9822b', '#f0c08f', '#e8e2d4', '#9fc0d6', '#5b8fb3', '#1f5a8c'];   // queda laranja × alta azul
+  var DIV_LIM = [-10, -5, -1, 1, 5, 10];
+  var SEQ = ['#d6e4ee', '#a9c6da', '#6f9ec0', '#3b6f8f', '#1f4a66'];
+  var TEMA = { light: { semDado: '#ddd7ca', borda: '#ffffff' }, dark: { semDado: '#3a434e', borda: '#252c35' } };
+  var NF = new Intl.NumberFormat('pt-BR'), NP1 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+    NP2 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  // ======================================================================
+  // Estado
+  // ======================================================================
+  var st = { lugar: 'br', ver: 'uf', viaRm: null, mapa: 'lider', ele: 'auto', ref: 't1', quem: 'a', ord: 'aptos', desc: true,
+    busca: '', todos: false, aba: 'resumo', tema: 'light' };
+  var BASE = { fonte: null, ind: null, lug: {}, v: { t1: {} }, geo: { uf: {}, reg: {}, mun: {}, int: {}, ime: {}, rm: {} },
+    ufDe: {}, membros: {}, carregadas: {}, gerado: '' };
+  var ELE = { ciclo: PADRAO.ciclo, t1: PADRAO.t1, t2: PADRAO.t2, cargo: PADRAO.cargo };
+  var FIN = { a: { n: PADRAO.a, nome: 'Flávio Bolsonaro', sg: 'PL' }, b: { n: PADRAO.b, nome: 'Lula', sg: 'PT' } };
+  var COMP = [];                    // eleições de comparação: [{id, rot, a, b}]
+  var VIVO = {};                    // chave -> {v, st, ts, and, dt, ht}
+  var AB = { br: null, uf: {} };    // progresso (arquivos -ab.json)
+  var AO = { estado: 'carregando', marcas: {}, ultima: null, timer: null, comecou: false, aviso: null, formato: [] };
+
+  // ======================================================================
+  // Utilidades
+  // ======================================================================
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function int(s) { var n = parseInt(String(s == null ? '' : s).replace(/[^\d-]/g, ''), 10); return isNaN(n) ? 0 : n; }
+  function pad(s, k) { s = String(s); while (s.length < k) s = '0' + s; return s; }
+  function fmtN(n) { return n == null ? '—' : NF.format(n); }
+  function fmtP(x) { return x == null || isNaN(x) ? '—' : NP1.format(x) + '%'; }
+  function fmtPP(d) { return d == null || isNaN(d) ? '—' : (d > 0.05 ? '+' : d < -0.05 ? '−' : '') + NP1.format(Math.abs(d)) + ' p.p.'; }
+  function pct(v, k) { return v && v[I.validos] > 0 ? 100 * v[I[k]] / v[I.validos] : null; }
+  function somar(vs) { var o = [0, 0, 0, 0, 0, 0, 0, 0]; vs.forEach(function (v) { if (v) for (var i = 0; i < 8; i++) o[i] += v[i]; }); return o; }
+  function nivel(k) { return k.indexOf(':') < 0 ? k : k.slice(0, k.indexOf(':')); }
+  function cod(k) { return k.slice(k.indexOf(':') + 1); }
+  function nomeDe(k) { var l = BASE.lug[k]; return l ? l.n : k; }
+  function curto(f) { return f.nome; }
+  function hash(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return ((h >>> 0) % 100000) / 100000; }
+  function $(id) { return document.getElementById(id); }
+
+  // ======================================================================
+  // Endereços do TSE (confirmados no ele-c.json e nos arquivos publicados do 1º turno)
+  //   <raiz>/<ciclo>/<eleição>/dados/<uf>/<uf>[<município 5 díg.>]-c<cargo 4 díg.>-e<eleição 6 díg.>-u.json   resultado
+  //   <raiz>/<ciclo>/<eleição>/dados/<uf>/<uf>-e<eleição 6 díg.>-ab.json                                      progresso
+  //   <raiz>/<ciclo>/<eleição>/config/mun-e<eleição 6 díg.>-cm.json                                            municípios
+  // ======================================================================
+  var URLS = {
+    raiz: function (ele) { return TSE_RAIZ + '/' + ELE.ciclo + '/' + ele; },
+    ab: function (ele, uf) { uf = uf.toLowerCase(); return URLS.raiz(ele) + '/dados/' + uf + '/' + uf + '-e' + pad(ele, 6) + '-ab.json'; },
+    u: function (ele, uf, mun) { uf = uf.toLowerCase(); return URLS.raiz(ele) + '/dados/' + uf + '/' + uf + (mun ? pad(mun, 5) : '') + '-c' + ELE.cargo + '-e' + pad(ele, 6) + '-u.json'; },
+    cm: function (ele) { return URLS.raiz(ele) + '/config/mun-e' + pad(ele, 6) + '-cm.json'; }
+  };
+  function ele2() { return MODO === 'ensaio' ? ELE.t1 : ELE.t2; }
+
+  // ======================================================================
+  // Leitura dos arquivos do TSE
+  // ======================================================================
+  function erroFormato(url, msg) { var e = new Error('Formato inesperado em ' + url + ': ' + msg); e.formato = true; e.url = url; return e; }
+  // resultado de um lugar: [aptos, comparecimento, válidos, brancos, nulos, A, B, outros]
+  function lerU(j, url) {
+    if (!j || !j.carg || !j.carg.length || !j.v || !j.e || !j.s) throw erroFormato(url, 'faltam as partes carg, v, e ou s');
+    var votos = {}, nomes = {};
+    (j.carg[0].agr || []).forEach(function (g) { (g.par || []).forEach(function (p) { (p.cand || []).forEach(function (c) { votos[c.n] = int(c.vap); nomes[c.n] = c.nmu; }); }); });
+    if (j.v.vv == null || j.e.te == null || j.s.ts == null) throw erroFormato(url, 'faltam vv, te ou ts');
+    var vv = int(j.v.vv), a = votos[FIN.a.n] || 0, b = votos[FIN.b.n] || 0;
+    return { v: [int(j.e.te), int(j.e.c), vv, int(j.v.vb), int(j.v.tvn != null ? j.v.tvn : j.v.vn), a, b, vv - a - b],
+      st: int(j.s.st), ts: int(j.s.ts), and: j.and || '', dt: j.dt || '', ht: j.ht || '', nomes: nomes, tp: j.tpabr, cd: j.cdabr };
+  }
+  // progresso: {chave: {st, ts, and, marca}}; chaves 'br', 'zz', 'uf:SP', 'mun:71072'
+  function lerAb(j, url) {
+    if (!j || !Array.isArray(j.abr)) throw erroFormato(url, 'falta a lista abr');
+    var out = {};
+    j.abr.forEach(function (x) {
+      if (!x.s) return;
+      var tp = x.tpabr, c = String(x.cdabr || '');
+      var k = tp === 'br' ? 'br' : tp === 'uf' ? (c.toLowerCase() === 'zz' ? 'zz' : 'uf:' + c.toUpperCase()) : (tp === 'mun' || tp === 'mu') ? 'mun:' + pad(c, 5) : null;
+      if (!k) return;
+      out[k] = { st: int(x.s.st), ts: int(x.s.ts), and: x.and || '', marca: x.s.st + '|' + (x.dt || '') + ' ' + (x.ht || '') };
+    });
+    return { quando: (j.dg || '') + ' ' + (j.hg || ''), lug: out };
+  }
+
+  // ======================================================================
+  // Fila de consultas ao TSE: até 9 por segundo, 3 ao mesmo tempo, pausa depois de vários "não encontrado"
+  // ======================================================================
+  function Fila(buscar) {
+    this.buscar = buscar; this.q = []; this.ativos = 0; this.inicios = []; this.seguidos = 0; this.pausaAte = 0;
+    this.total = 0; this.n404 = 0; this.agendado = false; this.pedidos = [];
+  }
+  // op.esperado = "não encontrado" é normal (o arquivo geral antes de a apuração começar): não conta para a pausa
+  Fila.prototype.pedir = function (url, op) {
+    var self = this;
+    return new Promise(function (res) { self.q.push({ url: url, res: res, esperado: !!(op && op.esperado) }); self.girar(); });
+  };
+  Fila.prototype.girar = function () {
+    var self = this;
+    while (this.ativos < SIMULT && this.q.length) {
+      var agora = RELOGIO.agora();
+      if (agora < this.pausaAte) { this.mais(this.pausaAte - agora); return; }
+      while (this.inicios.length && agora - this.inicios[0] >= 1000) this.inicios.shift();
+      if (this.inicios.length >= POR_SEG) { this.mais(1000 - (agora - this.inicios[0]) + 1); return; }
+      var item = this.q.shift();
+      this.inicios.push(agora); this.ativos++; this.total++; this.pedidos.push([agora, item.url]);
+      (function (item) {
+        Promise.resolve().then(function () { return self.buscar(item.url); }).then(function (r) { return r; }, function () { return { ok: false, status: 0 }; }).then(function (r) {
+          self.ativos--;
+          if (r.ok) self.seguidos = 0;
+          else if ((r.status === 404 || r.status === 403) && item.esperado) self.n404++;
+          else if (r.status === 404 || r.status === 403) {
+            self.n404++; self.seguidos++;
+            if (self.seguidos >= MAX_404) { self.pausaAte = RELOGIO.agora() + PAUSA_404; self.seguidos = 0; avisar('O TSE respondeu "não encontrado" várias vezes seguidas. O painel fez uma pausa de 5 minutos para não ser bloqueado e depois tenta de novo.'); }
+          }
+          item.res(r);
+          self.girar();
+        });
+      })(item);
+    }
+  };
+  Fila.prototype.mais = function (ms) {
+    var self = this;
+    if (this.agendado) return;
+    this.agendado = true;
+    RELOGIO.depois(Math.max(1, ms), function () { self.agendado = false; self.girar(); });
+  };
+  function buscarTse(url) {
+    if (OPC.buscarTse) return OPC.buscarTse(url);
+    if (MODO === 'demo') return DEMO.buscar(url);
+    // no-cache = o navegador confere com o TSE se mudou (ETag) e só baixa de novo o que mudou
+    return fetch(url, { cache: 'no-cache' }).then(function (r) {
+      if (!r.ok) return { ok: false, status: r.status };
+      return r.json().then(function (j) { return { ok: true, status: r.status, json: j }; }, function () { return { ok: false, status: -1 }; });
+    });
+  }
+  var FILA = new Fila(buscarTse);
+
+  function carregarJson(url) {
+    if (OPC.carregar) return OPC.carregar(url);
+    return fetch(url, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  }
+
+  // ======================================================================
+  // Base do projeto (aovivo_dados/) e reserva (TSE na hora)
+  // ======================================================================
+  function aplicarIndice(ind) {
+    BASE.ind = ind; BASE.gerado = ind.gerado || '';
+    ELE = { ciclo: ind.eleicao.ciclo, t1: ind.eleicao.t1, t2: ind.eleicao.t2, cargo: (ind.disputas[0] || {}).cargo_tse || PADRAO.cargo };
+    FIN = { a: ind.finalistas[0], b: ind.finalistas[1] };
+    COMP = ind.comparacoes.filter(function (c) { return c.id !== 't1'; });
+  }
+  function juntarBase(d) {
+    Object.keys(d.lug).forEach(function (k) { BASE.lug[k] = d.lug[k]; });
+    Object.keys(d.v).forEach(function (e) { var alvo = BASE.v[e] || (BASE.v[e] = {}); Object.keys(d.v[e]).forEach(function (k) { alvo[k] = d.v[e][k]; }); });
+    Object.keys(d.geo || {}).forEach(function (n) { var g = d.geo[n], alvo = BASE.geo[n] || (BASE.geo[n] = {}); Object.keys(g).forEach(function (c) { alvo[c] = g[c]; }); });
+  }
+  function indexarUf(u) {
+    var m = BASE.membros;
+    m['uf:' + u] = [];
+    Object.keys(BASE.lug).forEach(function (k) {
+      var l = BASE.lug[k];
+      if (nivel(k) !== 'mun' || BASE.ufDe[k] !== u) return;
+      m['uf:' + u].push(k);
+      ['int', 'ime', 'rm'].forEach(function (n) { if (l[n]) (m[n + ':' + l[n]] = m[n + ':' + l[n]] || []).push(k); });
+      if (l.ime && l.int) BASE.lug['ime:' + l.ime].int = l.int;
+    });
+  }
+  function carregarBase() {
+    if (Q.get('base') === '0') return Promise.reject(new Error('base desligada'));
+    return carregarJson(PASTA + 'indice.json').then(function (ind) {
+      if (!ind || ind.versao !== 1 || !ind.finalistas) throw new Error('índice da base em formato desconhecido');
+      return carregarJson(PASTA + 'br.json').then(function (br) {
+        aplicarIndice(ind); juntarBase(br); BASE.fonte = 'base';
+      });
+    });
+  }
+  function garantirUf(u) {
+    if (BASE.carregadas[u]) return BASE.carregadas[u];
+    var p;
+    if (BASE.fonte === 'base') {
+      p = carregarJson(PASTA + BASE.ind.ufs[u].arq).then(function (d) {
+        Object.keys(d.lug).forEach(function (k) { BASE.ufDe[k] = u; });
+        juntarBase(d); indexarUf(u);
+      });
+    } else p = reservaUf(u);
+    BASE.carregadas[u] = p.then(function () { BASE.carregadas[u] = true; return true; }, function (e) { delete BASE.carregadas[u]; avisar('Não consegui abrir os dados de ' + (NOME_UF[u] || u) + ': ' + e.message); });
+    return BASE.carregadas[u];
+  }
+  function ufCarregada(u) { return BASE.carregadas[u] === true; }
+
+  // Reserva: sem aovivo_dados/, tudo vem do TSE (nomes do cm do 1º turno, 1º turno dos arquivos do 1º turno); sem mapa
+  var CM = null;
+  function carregarReserva() {
+    BASE.fonte = 'reserva';
+    BASE.lug = { br: { n: 'Brasil' }, zz: { n: 'Exterior' } };
+    Object.keys(REGIOES).forEach(function (r) { BASE.lug['reg:' + r] = { n: REGIOES[r] }; });
+    Object.keys(NOME_UF).forEach(function (u) { BASE.lug['uf:' + u] = { n: NOME_UF[u], reg: UF_REG[u] }; });
+    var lista = ['br', 'zz'].concat(Object.keys(NOME_UF).map(function (u) { return 'uf:' + u; }));
+    return Promise.all(lista.map(function (k) {
+      var uf = k === 'br' ? 'br' : k === 'zz' ? 'zz' : cod(k);
+      return FILA.pedir(URLS.u(ELE.t1, uf)).then(function (r) { if (r.ok) try { BASE.v.t1[k] = lerU(r.json, URLS.u(ELE.t1, uf)).v; } catch (e) { formato(e); } });
+    })).then(function () {
+      if (BASE.v.t1.br) BASE.v.t1.brz = BASE.v.t1.br;   // o arquivo br do TSE já inclui o exterior
+    });
+  }
+  function reservaUf(u) {
+    var cm = CM ? Promise.resolve(CM) : FILA.pedir(URLS.cm(ELE.t1)).then(function (r) { if (!r.ok) throw new Error('lista de municípios do TSE indisponível'); CM = r.json; return CM; });
+    return cm.then(function (j) {
+      var abr = (j.abr || []).filter(function (a) { return String(a.cd).toUpperCase() === u; })[0];
+      if (!abr) throw new Error('estado fora da lista do TSE');
+      abr.mu.forEach(function (m) { var k = 'mun:' + pad(m.cd, 5); BASE.lug[k] = { n: m.nm, ibge: m.cdi, z: m.z || [] }; BASE.ufDe[k] = u; });
+      indexarUf(u);
+    });
+  }
+
+  // ======================================================================
+  // Lugares: hierarquia, filhos e caminho
+  // ======================================================================
+  function ufDe(k) { var n = nivel(k); return n === 'uf' ? cod(k) : BASE.ufDe[k] || null; }
+  function pai(k) {
+    var n = nivel(k), l = BASE.lug[k] || {};
+    if (n === 'br') return null;
+    if (n === 'zz' || n === 'reg') return 'br';
+    if (n === 'uf') return 'reg:' + (l.reg || UF_REG[cod(k)]);
+    if (n === 'int' || n === 'rm' || n === 'zon') return 'uf:' + ufDe(k);
+    if (n === 'ime') return l.int ? 'int:' + l.int : 'uf:' + ufDe(k);
+    if (n === 'mun') return l.ime && BASE.lug['ime:' + l.ime] ? 'ime:' + l.ime : 'uf:' + ufDe(k);
+    return 'br';
+  }
+  function caminho(k, viaRm) {
+    var c = [];
+    while (k) { c.unshift(k); k = nivel(k) === 'mun' && viaRm ? viaRm : pai(k); viaRm = null; }
+    return c;
+  }
+  function opcoesVer(k) {
+    var n = nivel(k), u = ufDe(k), o = [];
+    if (n === 'br') return ['reg', 'uf'];
+    if (n === 'reg') return ['uf'];
+    if (n === 'uf') {
+      if (BASE.fonte === 'base') o.push('int', 'ime');
+      o.push('mun');
+      if (Object.keys(BASE.lug).some(function (x) { return nivel(x) === 'rm' && BASE.ufDe[x] === u; })) o.push('rm');
+      return o;
+    }
+    if (n === 'int') return ['ime', 'mun'];
+    if (n === 'ime' || n === 'rm') return ['mun'];
+    return [];
+  }
+  function verPadrao(k) { var n = nivel(k); return n === 'br' || n === 'reg' ? 'uf' : 'mun'; }
+  // lugares do nível `ver` dentro de k (para município: os vizinhos do mesmo conjunto)
+  function itens(k, ver) {
+    var n = nivel(k), u = ufDe(k);
+    if (n === 'mun' || n === 'zz') return itens(n === 'mun' && st.viaRm ? st.viaRm : pai(k), n === 'zz' ? 'uf' : 'mun');
+    if (n === 'br') return Object.keys(BASE.lug).filter(function (x) { return nivel(x) === ver; }).concat(ver === 'uf' ? ['zz'] : []);
+    if (n === 'reg') return Object.keys(BASE.lug).filter(function (x) { return nivel(x) === 'uf' && (BASE.lug[x].reg || UF_REG[cod(x)]) === cod(k); });
+    if (!ufCarregada(u)) return [];
+    if (ver === 'mun') return (BASE.membros[k] || []).slice();
+    var achou = {};
+    (BASE.membros[k] || []).forEach(function (m) { var c = BASE.lug[m][ver]; if (c) achou[ver + ':' + c] = true; });
+    if (n === 'uf' && ver === 'zon') Object.keys(BASE.lug).forEach(function (x) { if (nivel(x) === 'zon' && BASE.ufDe[x] === u) achou[x] = true; });
+    return Object.keys(achou);
+  }
+  // unidades que somadas dão o lugar: estados (Brasil, região) ou municípios (do estado para baixo)
+  function membros(k) {
+    var n = nivel(k);
+    if (n === 'br') return Object.keys(BASE.lug).filter(function (x) { return nivel(x) === 'uf'; }).concat(['zz']);
+    if (n === 'reg') return itens(k, 'uf');
+    if (n === 'mun' || n === 'zz') return [k];
+    return BASE.membros[k] || [];
+  }
+
+  // ======================================================================
+  // Valores: base (eleições anteriores) e ao vivo (2º turno)
+  // ======================================================================
+  function base(k, e) {
+    var v = BASE.v[e] || {};
+    if (k === 'br') return v.brz || null;          // Brasil com o exterior: é o número oficial
+    if (v[k]) return v[k];
+    var n = nivel(k);
+    if (n === 'reg') { var us = itens(k, 'uf'); return us.every(function (x) { return v[x]; }) && us.length ? somar(us.map(function (x) { return v[x]; })) : null; }
+    var ms = membros(k);
+    if (ms.length && ms.every(function (x) { return v[x]; })) return somar(ms.map(function (x) { return v[x]; }));
+    return null;
+  }
+  // 2º turno no lugar: {v, st, ts, completo, parcial}; v só existe quando o TSE já mandou o resultado
+  function vivo(k) {
+    var n = nivel(k);
+    if (n === 'br' || n === 'uf' || n === 'zz' || n === 'mun') {
+      var x = VIVO[k], p = progresso(k);
+      if (!x && !p) return null;
+      var stt = p ? p.st : x.st, tss = p ? p.ts : x.ts;
+      if (x && x.st >= stt) { stt = x.st; tss = x.ts; }
+      return { v: x ? x.v : null, st: stt, ts: tss, completo: tss > 0 && stt >= tss && !!x && x.st >= x.ts, atual: !!x && (!p || x.st === p.st) };
+    }
+    // somas: região = estados; intermediária, imediata e RM = municípios
+    var ms = membros(k), vs = [], s = 0, t = 0, todos = ms.length > 0;
+    ms.forEach(function (m) { var y = vivo(m); if (y) { s += y.st; t += y.ts; if (y.v) vs.push(y.v); if (!y.completo) todos = false; } else todos = false; });
+    if (!t && !vs.length) return null;
+    return { v: vs.length ? somar(vs) : null, st: s, ts: t, completo: todos, soma: true };
+  }
+  function progresso(k) {
+    if (k === 'br' || k === 'zz' || nivel(k) === 'uf') return AB.br && AB.br.lug[k] || null;
+    if (nivel(k) === 'mun') { var u = ufDe(k), ab = AB.uf[u]; return ab && ab.lug[k] || null; }
+    return null;
+  }
+  function temVivo() { return Object.keys(VIVO).length > 0; }
+  // Comparação justa: só os lugares 100% apurados (estado inteiro, ou os municípios do estado aberto)
+  function justa(k) {
+    var n = nivel(k), un = [];
+    function porEstado(uk) {
+      var x = vivo(uk);
+      if (x && x.completo) { un.push(uk); return; }
+      var u = cod(uk);
+      if (ufCarregada(u) && AB.uf[u]) membros(uk).forEach(function (m) { var y = vivo(m); if (y && y.completo) un.push(m); });
+    }
+    if (n === 'br' || n === 'reg') {
+      var b = vivo(k);
+      if (b && b.completo) un = [k];
+      else { itens(n === 'br' ? 'br' : k, 'uf').forEach(function (x) { if (nivel(x) === 'uf') porEstado(x); else { var y = vivo(x); if (y && y.completo) un.push(x); } }); }
+    } else if (n === 'uf') { porEstado(k); }
+    else { var z = vivo(k); if (z && z.completo && nivel(k) !== 'zon') un = [k]; else membros(k).forEach(function (m) { var y = vivo(m); if (y && y.completo) un.push(m); }); }
+    var tot = base(k, 't1'), v2 = somar(un.map(function (x) { return vivo(x).v; })), ref = {};
+    ['t1'].concat(COMP.map(function (c) { return c.id; })).forEach(function (e) {
+      var vs = un.map(function (x) { return base(x, e); });
+      ref[e] = vs.every(Boolean) && vs.length ? somar(vs) : null;
+    });
+    var cob = un.length && tot && ref.t1 ? ref.t1[I.aptos] / tot[I.aptos] : 0;
+    return { unidades: un, n: un.length, cobertura: un.length ? (un.length === 1 && un[0] === k ? 1 : cob) : 0, v2: un.length ? v2 : null, ref: ref };
+  }
+
+  // ======================================================================
+  // Apuração ao vivo: só o 2º turno vem do TSE
+  // ======================================================================
+  function avisar(msg) { AO.aviso = msg; pedirRender(); }
+  function formato(e) {
+    if (AO.formato.indexOf(e.url) < 0) AO.formato.push(e.url);
+    AO.aviso = 'Aviso de formato: um arquivo do TSE veio diferente do esperado e foi ignorado. Arquivo: ' + e.url;
+    pedirRender();
+  }
+  function chaveUrl(k) { return k === 'br' ? ['br'] : k === 'zz' ? ['zz'] : nivel(k) === 'uf' ? [cod(k)] : [ufDe(k), cod(k)]; }
+  var A_CAMINHO = {};   // chave -> marca já pedida e ainda sem resposta (não pede duas vezes)
+  function pegarU(k, marca) {
+    if (A_CAMINHO[k] === marca) return Promise.resolve();
+    A_CAMINHO[k] = marca;
+    var p = chaveUrl(k), url = URLS.u(ele2(), p[0], p[1]);
+    return FILA.pedir(url).then(function (r) {
+      delete A_CAMINHO[k];
+      if (!r.ok) return;
+      try { VIVO[k] = lerU(r.json, url); AO.marcas[k] = marca; } catch (e) { if (e.formato) formato(e); }
+      pedirRender();
+    });
+  }
+  function cicloUf(u) {
+    var url = URLS.ab(ele2(), u);
+    return FILA.pedir(url).then(function (r) {
+      if (!r.ok) return;
+      var ab;
+      try { ab = lerAb(r.json, url); } catch (e) { formato(e); return; }
+      AB.uf[u] = ab;
+      var ps = [];
+      // os maiores primeiro (mais eleitores): as cidades grandes aparecem nos primeiros segundos
+      Object.keys(ab.lug).filter(function (k) { var e = ab.lug[k]; return nivel(k) === 'mun' && e.st > 0 && AO.marcas[k] !== e.marca; })
+        .sort(function (p, q) { var a = base(p, 't1'), b = base(q, 't1'); return (b ? b[0] : 0) - (a ? a[0] : 0); })
+        .forEach(function (k) { ps.push(pegarU(k, ab.lug[k].marca)); });
+      return Promise.all(ps);
+    });
+  }
+  function ciclo() {
+    if (AO.timer) { clearTimeout(AO.timer); AO.timer = null; }
+    if (MODO === 'demo') DEMO.passo();
+    var url = URLS.ab(ele2(), 'br');
+    return FILA.pedir(url, { esperado: !AO.comecou }).then(function (r) {
+      if (!r.ok) {
+        AO.estado = AO.comecou ? 'falha' : 'antes';
+        pedirRender(); agendar(AO.comecou ? PERIODO : ESPERA_ANTES); return;
+      }
+      var ab;
+      try { ab = lerAb(r.json, url); } catch (e) { formato(e); agendar(PERIODO); return; }
+      AB.br = ab; AO.comecou = true; AO.estado = 'apurando';
+      var ps = [];
+      // arquivos detalhados só depois que o geral existe, e só os que mudaram
+      Object.keys(ab.lug).forEach(function (k) { var e = ab.lug[k]; if (e.st > 0 && AO.marcas[k] !== e.marca) ps.push(pegarU(k, e.marca)); });
+      var u = ufDe(st.lugar);
+      if (u && ab.lug['uf:' + u] && ab.lug['uf:' + u].st > 0 && ufCarregada(u)) ps.push(cicloUf(u));
+      return Promise.all(ps).then(function () {
+        AO.ultima = RELOGIO.agora();
+        var b = ab.lug.br; if (b && b.ts && b.st >= b.ts && MODO !== 'demo') AO.estado = 'fim';
+        pedirRender(); agendar(PERIODO);
+      });
+    });
+  }
+  function agendar(ms) { if (OPC.semCiclo) return; if (AO.timer) clearTimeout(AO.timer); AO.timer = RELOGIO.depois(ms, ciclo); }
+
+  // ======================================================================
+  // Demonstração (?demo=1): um "TSE de mentira" que responde no mesmo formato, a partir do 1º turno da base
+  // ?t=0 a 1 fixa o momento da apuração (1 = tudo apurado)
+  // ======================================================================
+  var DEMO = {
+    t: Q.get('t') != null ? Math.max(0, Math.min(1, parseFloat(Q.get('t')) || 0)) : 0, fixo: Q.get('t') != null,
+    passo: function () { if (!this.fixo) this.t = Math.min(1, this.t + 0.025); },
+    fracao: function (k) { var t0 = 0.6 * hash('i' + k), f = (this.t - t0) / 0.35; return this.t >= 1 ? 1 : Math.max(0, Math.min(1, f)); },
+    final: function (k, v) {   // 2º turno simulado: os "outros" se dividem e uma parte troca de lado
+      var h = hash(k), hu = hash('uf' + (ufDe(k) || k)), alfa = Math.max(0.05, Math.min(0.95, 0.3 + 0.35 * hu + 0.3 * (h - 0.5)));
+      var a = Math.round(v[5] + alfa * v[7] + (hash('s' + k) - 0.5) * 0.06 * v[2]); a = Math.max(0, Math.min(v[2], a));
+      return [v[0], v[1], v[2], v[3], v[4], a, v[2] - a, 0];
+    },
+    u: function (k, tp, cd) {
+      if (k === 'br') return this.brasil();
+      var v1 = base(k, 't1'); if (!v1) return null;
+      var f = this.fracao(k), v = this.final(k, v1), ts = Math.max(1, Math.round(v1[0] / 380)), sec = Math.round(ts * f);
+      var m = function (x) { return String(Math.round(x * f)); };
+      return { ele: ELE.t2, t: '2', tpabr: tp, cdabr: cd, dg: '25/10/2026', hg: '17:00:00', dt: '25/10/2026', ht: String(sec), and: f >= 1 ? 'f' : 'p',
+        carg: [{ cd: '1', agr: [{ par: [{ cand: [{ n: FIN.a.n, nmu: FIN.a.nome.toUpperCase(), vap: m(v[5]) }] }] }, { par: [{ cand: [{ n: FIN.b.n, nmu: FIN.b.nome.toUpperCase(), vap: m(v[6]) }] }] }] }],
+        s: { ts: String(ts), st: String(sec) }, e: { te: String(v1[0]), c: m(v[1]) }, v: { vv: m(v[2]), vb: m(v[3]), tvn: m(v[4]), vn: m(v[4]) } };
+    },
+    brasil: function () {   // como no TSE: o Brasil é a soma dos estados e do exterior
+      var self = this, soma = { te: 0, c: 0, vv: 0, vb: 0, tvn: 0, a: 0, b: 0, ts: 0, st: 0 };
+      Object.keys(BASE.lug).filter(function (x) { return nivel(x) === 'uf' || x === 'zz'; }).forEach(function (x) {
+        var j = self.u(x, 'uf', x); if (!j) return;
+        soma.te += +j.e.te; soma.c += +j.e.c; soma.vv += +j.v.vv; soma.vb += +j.v.vb; soma.tvn += +j.v.tvn; soma.ts += +j.s.ts; soma.st += +j.s.st;
+        soma.a += +j.carg[0].agr[0].par[0].cand[0].vap; soma.b += +j.carg[0].agr[1].par[0].cand[0].vap;
+      });
+      var S = String;
+      return { ele: ELE.t2, t: '2', tpabr: 'br', cdabr: 'br', dg: '25/10/2026', hg: '17:00:00', dt: '25/10/2026', ht: S(soma.st), and: soma.st >= soma.ts ? 'f' : 'p',
+        carg: [{ cd: '1', agr: [{ par: [{ cand: [{ n: FIN.a.n, nmu: FIN.a.nome.toUpperCase(), vap: S(soma.a) }] }] }, { par: [{ cand: [{ n: FIN.b.n, nmu: FIN.b.nome.toUpperCase(), vap: S(soma.b) }] }] }] }],
+        s: { ts: S(soma.ts), st: S(soma.st) }, e: { te: S(soma.te), c: S(soma.c) }, v: { vv: S(soma.vv), vb: S(soma.vb), tvn: S(soma.tvn), vn: S(soma.tvn) } };
+    },
+    abDe: function (lista) {
+      var self = this;
+      return { ele: ELE.t2, dg: '25/10/2026', hg: '17:00:00', abr: lista.map(function (x) { var j = self.u(x[0], x[1], x[2]); return j && { tpabr: x[1], cdabr: x[2], and: j.and, dt: j.dt, ht: j.ht, s: j.s }; }).filter(Boolean) };
+    },
+    buscar: function (url) {
+      var self = this, m = /\/dados\/([a-z]{2})\/([a-z]{2})(\d{5})?-(?:c\d{4}-)?e\d{6}-(u|ab)\.json$/.exec(url);
+      var nao = { ok: false, status: 404 };
+      if (!m || this.t <= 0) return Promise.resolve(nao);
+      var uf = m[2], mun = m[3], tipo = m[4];
+      if (tipo === 'ab' && uf === 'br') {
+        var l = [['br', 'br', 'br'], ['zz', 'uf', 'zz']].concat(Object.keys(BASE.lug).filter(function (x) { return nivel(x) === 'uf'; }).map(function (x) { return [x, 'uf', cod(x).toLowerCase()]; }));
+        return Promise.resolve({ ok: true, status: 200, json: this.abDe(l) });
+      }
+      var U = uf.toUpperCase();
+      if (tipo === 'ab') {
+        return Promise.resolve(garantirUf(U)).then(function () {
+          return { ok: true, status: 200, json: self.abDe([['uf:' + U, 'uf', uf]].concat((BASE.membros['uf:' + U] || []).map(function (x) { return [x, 'mun', cod(x)]; }))) };
+        });
+      }
+      var k = mun ? 'mun:' + mun : uf === 'br' ? 'br' : uf === 'zz' ? 'zz' : 'uf:' + U;
+      var j = this.u(k, mun ? 'mu' : uf === 'br' ? 'br' : 'uf', mun || uf);
+      return Promise.resolve(j ? { ok: true, status: 200, json: j } : nao);
+    }
+  };
+
+  // ======================================================================
+  // Desenho
+  // ======================================================================
+  var RENDER_PENDENTE = false;
+  function pedirRender() {
+    if (RENDER_PENDENTE) return;
+    RENDER_PENDENTE = true;
+    RELOGIO.depois(250, function () { RENDER_PENDENTE = false; render(); });
+  }
+  function render() {
+    renderCab(); renderMigalhas(); renderResumo(); renderMapa(); renderLista(); renderAbas();
+  }
+  function renderCab() {
+    var sub = MODO === 'demo' ? 'Demonstração — 2º turno simulado' : MODO === 'ensaio' ? 'Ensaio com os arquivos reais do 1º turno' : 'Votação das 8h às 17h (horário de Brasília); resultados a partir das 17h';
+    if (BASE.gerado) sub += ' · base gerada em ' + BASE.gerado.slice(8, 10) + '/' + BASE.gerado.slice(5, 7) + '/' + BASE.gerado.slice(0, 4) + ' ' + BASE.gerado.slice(11, 16);
+    $('cab-sub').textContent = sub;
+    var est = { carregando: 'Carregando…', antes: 'A apuração ainda não começou', apurando: 'Apurando', fim: 'Apuração concluída', falha: 'Sem resposta do TSE agora' }[AO.estado] || '';
+    var h = AO.ultima ? ' · atualizado às ' + new Date(AO.ultima).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '';
+    if (FILA.pausaAte > RELOGIO.agora()) est = 'Pausa (muitos "não encontrado")';
+    $('estado').innerHTML = '<span class="bolinha' + (AO.estado === 'apurando' ? ' viva' : '') + '"></span>' + esc(est + h);
+    var f;
+    if (BASE.fonte === 'base') f = '<b>Fonte:</b> 1º turno de 2026 e 2º turnos de 2022 e 2014 vêm da <b>base do projeto</b> (arquivos publicados junto com este painel, conferidos com os números oficiais). ';
+    else if (BASE.fonte === 'reserva') f = '<b>Fonte:</b> a base do projeto não abriu, então <b>tudo vem direto do TSE</b> (mais lento, sem mapa e sem 2022/2014). ';
+    else f = 'Carregando a base… ';
+    f += MODO === 'demo' ? 'O 2º turno é <b>simulado</b>: nada é pedido ao TSE.' : MODO === 'ensaio' ? 'No lugar do 2º turno o painel lê os <b>arquivos reais do 1º turno no TSE</b>: os números devem ficar iguais aos do 1º turno.' : 'O 2º turno vem <b>direto do TSE</b>, de minuto em minuto.';
+    $('fonte').innerHTML = f;
+    $('aviso').hidden = !AO.aviso; $('aviso').textContent = AO.aviso || '';
+  }
+  function renderMigalhas() {
+    var c = caminho(st.lugar, st.viaRm), h = [];
+    // etiqueta do nível onde o nome se repete (estado, intermediária, imediata e município podem ter o mesmo nome)
+    var ETQ = { int: 'interm.', ime: 'imediata', rm: 'RM', zon: 'zona' };
+    c.forEach(function (k, i) {
+      if (i) h.push('<span class="sep">›</span>');
+      if (ETQ[nivel(k)]) h.push('<span class="niv">' + ETQ[nivel(k)] + '</span>');
+      h.push(i === c.length - 1 ? '<span class="aqui">' + esc(nomeDe(k)) + '</span>' : '<button data-ir="' + esc(k) + '">' + esc(nomeDe(k)) + '</button>');
+    });
+    if (c.length > 1) h.unshift('<button data-ir="' + esc(c[c.length - 2]) + '" aria-label="Voltar para ' + esc(nomeDe(c[c.length - 2])) + '">← Voltar</button><span class="sep">·</span>');
+    $('migalhas').innerHTML = h.join('');
+  }
+  function linhaApur(x) {
+    if (!x || !x.ts) return '<p class="rot">' + (AO.estado === 'antes' || !AO.comecou ? 'A apuração do 2º turno ainda não começou.' : 'Ainda sem seções apuradas aqui.') + '</p>';
+    var p = 100 * x.st / x.ts;
+    return '<div class="barra" role="progressbar" aria-valuenow="' + p.toFixed(1) + '" aria-valuemin="0" aria-valuemax="100"><i style="width:' + Math.min(100, p).toFixed(2) + '%"></i></div>' +
+      '<p class="rot">Seções apuradas: <b>' + (p >= 100 ? '100%' : NP2.format(p) + '%') + '</b> (' + fmtN(x.st) + ' de ' + fmtN(x.ts) + ')' + (x.soma ? ' · soma dos lugares já recebidos' : '') + '</p>';
+  }
+  // régua: onde cada finalista estava no 1º turno (círculo vazio) e onde está no 2º (círculo cheio)
+  function svgRegua(p1, p2) {
+    var W = 360, H = 64, x0 = 10, x1 = W - 10, X = function (p) { return x0 + (x1 - x0) * p / 100; }, s = [];
+    s.push('<line x1="' + x0 + '" x2="' + x1 + '" y1="20" y2="20" stroke="var(--linha)" stroke-width="2"/><line x1="' + X(50) + '" x2="' + X(50) + '" y1="12" y2="52" stroke="var(--sub)" stroke-dasharray="3 3"/>');
+    s.push('<line x1="' + x0 + '" x2="' + x1 + '" y1="44" y2="44" stroke="var(--linha)" stroke-width="2"/>');
+    s.push('<text x="' + X(50) + '" y="62" text-anchor="middle">50%</text>');
+    [['a', 20], ['b', 44]].forEach(function (q) {
+      var k = q[0], y = q[1], a = p1[k], b = p2[k], cor = 'var(--cor-' + k + ')';
+      if (a != null && b != null) s.push('<line x1="' + X(a) + '" x2="' + X(b) + '" y1="' + y + '" y2="' + y + '" stroke="' + cor + '" stroke-width="4"/>');
+      if (a != null) s.push('<circle cx="' + X(a) + '" cy="' + y + '" r="6" fill="var(--card)" stroke="' + cor + '" stroke-width="2.5"><title>1º turno: ' + fmtP(a) + '</title></circle>');
+      if (b != null) s.push('<circle cx="' + X(b) + '" cy="' + y + '" r="6.5" fill="' + cor + '"><title>2º turno: ' + fmtP(b) + '</title></circle>');
+    });
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Régua do 1º para o 2º turno">' + s.join('') + '</svg>';
+  }
+  function renderResumo() {
+    var k = st.lugar, n = nivel(k), x = vivo(k), v1 = base(k, 't1'), v2 = x && x.v;
+    var h = ['<p class="rot">' + esc(NOME_NIVEL[n] || '') + (v1 ? ' · ' + fmtN(v1[I.aptos]) + ' eleitores' : '') + (n === 'zz' ? ' · fora do mapa' : '') + '</p><h2>' + esc(nomeDe(k)) + '</h2>'];
+    h.push(linhaApur(x));
+    h.push('<div class="fins">');
+    ['a', 'b'].forEach(function (q) {
+      var f = FIN[q], p2 = pct(v2, q), p1 = pct(v1, q);
+      h.push('<div class="fin" style="--c:var(--cor-' + q + ')"><div class="nm">' + esc(f.nome) + ' <span class="rot">(' + esc(f.sg) + ')</span></div>' +
+        '<div class="pc">' + (p2 == null ? '—' : fmtP(p2)) + '</div><div class="vt">' + (v2 ? fmtN(v2[I[q]]) + ' votos · ' : '') + '1º turno: ' + fmtP(p1) + '</div></div>');
+    });
+    h.push('</div>');
+    h.push('<h3>Do 1º para o 2º turno</h3><div class="regua">' + svgRegua({ a: pct(v1, 'a'), b: pct(v1, 'b') }, { a: pct(v2, 'a'), b: pct(v2, 'b') }) + '</div>');
+    h.push('<p class="nota"><span class="ponto" style="border:2px solid var(--sub)"></span>1º turno · <span class="ponto" style="background:var(--sub)"></span>2º turno' + (x && !x.completo && v2 ? ' (parcial)' : '') + (v1 ? ' · no 1º turno os outros candidatos tiveram ' + fmtP(pct(v1, 'outros')) : '') + '</p>');
+    // comparação justa
+    var J = justa(k), ids = [['t1', '1º turno 2026', FIN]].concat(COMP.map(function (c) { return [c.id, c.rot, c]; }));
+    h.push('<div class="justa"><p><b>Comparação justa</b>: só entra o que já está 100% apurado.</p>');
+    if (!J.n) h.push('<p>Ainda não há lugar 100% apurado aqui.</p>');
+    else {
+      var desc = J.unidades.length === 1 && J.unidades[0] === k ? 'o lugar inteiro (100% apurado)' : J.n + ' ' + (nivel(J.unidades[0]) === 'mun' ? 'municípios' : 'lugares') + ' com ' + fmtP(100 * J.cobertura) + ' dos eleitores';
+      h.push('<p>Base: ' + esc(desc) + '.</p><div class="tab-x"><table class="tab"><thead><tr><th>Eleição</th><th class="n">' + esc(FIN.a.nome) + '<br><small>e quem estava do lado dele</small></th><th class="n">' + esc(FIN.b.nome) + '<br><small>e do lado dele</small></th></tr></thead><tbody>');
+      var pa2 = pct(J.v2, 'a'), pb2 = pct(J.v2, 'b');
+      h.push('<tr><td><b>2º turno 2026</b></td><td class="n"><b>' + fmtP(pa2) + '</b></td><td class="n"><b>' + fmtP(pb2) + '</b></td></tr>');
+      ids.forEach(function (e) {
+        var r = J.ref[e[0]]; if (!r) return;
+        var pa = pct(r, 'a'), pb = pct(r, 'b');
+        h.push('<tr><td>' + esc(e[1]) + (e[0] !== 't1' ? '<br><small>' + esc(e[2].a.nome) + ' × ' + esc(e[2].b.nome) + '</small>' : '') + '</td><td class="n">' + fmtP(pa) + '<br><small>2026: ' + fmtPP(pa2 - pa) + '</small></td><td class="n">' + fmtP(pb) + '<br><small>2026: ' + fmtPP(pb2 - pb) + '</small></td></tr>');
+      });
+      h.push('</tbody></table></div>');
+    }
+    h.push('</div>');
+    // o lugar inteiro nas outras eleições
+    if (COMP.length) {
+      h.push('<h3>O lugar inteiro em outras eleições</h3><div class="tab-x"><table class="tab"><thead><tr><th>Eleição</th><th class="n">' + esc(FIN.a.nome) + '<br><small>e o lado dele</small></th><th class="n">' + esc(FIN.b.nome) + '<br><small>e o lado dele</small></th><th class="n">Compare&shy;cimento</th></tr></thead><tbody>');
+      ids.forEach(function (e) {
+        var r = base(k, e[0]); if (!r) return;
+        h.push('<tr><td><span class="eleicao">' + esc(e[1]) + '</span>' + (e[0] !== 't1' ? '<small>' + esc(e[2].a.nome) + ' × ' + esc(e[2].b.nome) + '</small>' : '') + '</td><td class="n">' + fmtP(pct(r, 'a')) + '</td><td class="n">' + fmtP(pct(r, 'b')) + '</td><td class="n">' + fmtP(r[I.aptos] ? 100 * r[I.comp] / r[I.aptos] : null) + '</td></tr>');
+      });
+      h.push('</tbody></table></div>');
+    }
+    $('resumo').innerHTML = h.join('');
+  }
+
+  // ---- cor de cada lugar no mapa
+  function eleMapa() { return st.ele === 'auto' ? (temVivo() ? 't2' : 't1') : st.ele; }
+  function corDe(k) {
+    var semDado = TEMA[st.tema].semDado;
+    if (st.mapa === 'apur') {
+      var x = vivo(k); if (!x || !x.ts || !x.st) return { c: semDado, o: 0.9 };
+      var p = x.st / x.ts; return { c: SEQ[p >= 1 ? 4 : p >= 0.75 ? 3 : p >= 0.5 ? 2 : p >= 0.25 ? 1 : 0], o: 0.9 };
+    }
+    if (st.mapa === 'mudou') {
+      var y = vivo(k), r = base(k, st.ref);
+      if (!y || !y.completo || !y.v || !r) return { c: semDado, o: 0.9 };
+      var d = pct(y.v, st.quem) - pct(r, st.quem), i = 0;
+      while (i < DIV_LIM.length && d >= DIV_LIM[i]) i++;
+      return { c: DIV[i], o: 0.9, d: d };
+    }
+    var e = eleMapa(), v, parcial = false;
+    if (e === 't2') { var z = vivo(k); v = z && z.v; parcial = !!(z && !z.completo); } else v = base(k, e);
+    if (!v || !v[I.validos]) return { c: semDado, o: 0.9 };
+    var m = pct(v, 'a') - pct(v, 'b'), q = m >= 0 ? 'a' : 'b', t = Math.abs(m) < 5 ? 0 : Math.abs(m) < 15 ? 1 : 2;
+    return { c: TONS[q][t], o: parcial ? 0.45 : 0.9 };
+  }
+  function geoDe(k) {
+    var n = nivel(k), g = BASE.geo[n === 'mun' ? 'mun' : n];
+    return g ? g[cod(k)] || null : null;
+  }
+  var MAPA = null, CAMADA = null, QUADRO = '';
+  function renderMapa() {
+    var ctl = [], k = st.lugar, ver = nivel(k) === 'mun' ? 'mun' : st.ver;
+    ctl.push('<div class="ctl"><div class="seg" role="group" aria-label="O que o mapa mostra">' +
+      [['lider', 'Quem lidera'], ['mudou', 'Quanto mudou'], ['apur', 'Apuração']].map(function (o) { return '<button data-mapa="' + o[0] + '" aria-pressed="' + (st.mapa === o[0]) + '">' + o[1] + '</button>'; }).join('') + '</div></div>');
+    var ids = [['t1', '1º turno 2026']].concat(COMP.map(function (c) { return [c.id, c.rot]; }));
+    if (st.mapa === 'lider') ctl.push('<div class="ctl"><span class="rot">Eleição:</span><div class="seg">' + [['t2', '2º turno 2026']].concat(ids).map(function (o) { return '<button data-ele="' + o[0] + '" aria-pressed="' + (eleMapa() === o[0]) + '">' + o[1] + '</button>'; }).join('') + '</div></div>');
+    if (st.mapa === 'mudou') {
+      ctl.push('<div class="ctl"><span class="rot">2º turno 2026 comparado com:</span><div class="seg">' + ids.map(function (o) { return '<button data-ref="' + o[0] + '" aria-pressed="' + (st.ref === o[0]) + '">' + o[1] + '</button>'; }).join('') + '</div></div>');
+      ctl.push('<div class="ctl"><span class="rot">Percentual de:</span><div class="seg">' + ['a', 'b'].map(function (q) { return '<button data-quem="' + q + '" aria-pressed="' + (st.quem === q) + '">' + esc(FIN[q].nome) + '</button>'; }).join('') + '</div></div>');
+    }
+    $('mapa-ctl').innerHTML = ctl.join('');
+    $('legenda').innerHTML = legenda();
+    var el = $('mapa');
+    if (BASE.fonte !== 'base' || typeof L === 'undefined') {
+      el.innerHTML = '<div class="sem-mapa">' + (BASE.fonte === 'reserva' ? 'Sem a base publicada, o mapa fica desligado. A lista continua funcionando.' : 'Carregando o mapa…') + '</div>';
+      return;
+    }
+    var u = ufDe(k);
+    if (u && !ufCarregada(u)) return;
+    if (!MAPA) {
+      el.innerHTML = '';
+      MAPA = L.map('mapa', { preferCanvas: true, zoomSnap: 0.25, attributionControl: false, scrollWheelZoom: true });
+      MAPA.setView([-14.5, -52], 4);
+    }
+    var lista = itens(k, ver).filter(function (x) { return nivel(x) !== 'zz' && geoDe(x); });
+    var feats = lista.map(function (x) { return { type: 'Feature', properties: { k: x }, geometry: geoDe(x) }; });
+    if (CAMADA) { MAPA.removeLayer(CAMADA); CAMADA = null; }
+    var borda = TEMA[st.tema].borda;
+    CAMADA = L.geoJSON({ type: 'FeatureCollection', features: feats }, {
+      style: function (f) {
+        var c = corDe(f.properties.k), sel = f.properties.k === k;
+        return { fillColor: c.c, fillOpacity: c.o, color: sel ? '#3d4752' : borda, weight: sel ? 2 : 0.6, dashArray: sel ? '5 4' : null };
+      },
+      onEachFeature: function (f, lyr) {
+        var x = f.properties.k;
+        lyr.bindTooltip(function () { return dica(x); }, { sticky: true });
+        lyr.on('click', function () { ir(x); });
+      }
+    }).addTo(MAPA);
+    var q = k + '|' + ver + '|' + lista.length;
+    if (q !== QUADRO && feats.length) {
+      QUADRO = q;
+      var bb = CAMADA.getBounds();
+      if (bb && bb.isValid()) MAPA.fitBounds(bb, { padding: [12, 12] });
+    }
+  }
+  function dica(k) {
+    var v1 = base(k, 't1'), x = vivo(k), v2 = x && x.v, h = '<b>' + esc(nomeDe(k)) + '</b><br>';
+    if (v2) h += esc(FIN.a.nome) + ' ' + fmtP(pct(v2, 'a')) + ' × ' + esc(FIN.b.nome) + ' ' + fmtP(pct(v2, 'b')) + (x.completo ? '' : ' (' + NP1.format(100 * x.st / x.ts) + '% apurado)') + '<br>';
+    else h += '2º turno: ainda sem apuração<br>';
+    if (v1) h += '1º turno: ' + fmtP(pct(v1, 'a')) + ' × ' + fmtP(pct(v1, 'b'));
+    var c = corDe(k); if (c.d != null) h += '<br>Mudança: ' + fmtPP(c.d);
+    return h;
+  }
+  function legenda() {
+    var h = [];
+    function it(c, t) { h.push('<span><i style="background:' + c + '"></i>' + esc(t) + '</span>'); }
+    if (st.mapa === 'apur') { ['até 25%', '25–50%', '50–75%', '75–99%', '100%'].forEach(function (t, i) { it(SEQ[i], t); }); it(TEMA[st.tema].semDado, 'sem apuração'); }
+    else if (st.mapa === 'mudou') {
+      var t = ['caiu 10 p.p. ou mais', '5 a 10', '1 a 5', 'quase igual (±1)', 'subiu 1 a 5', '5 a 10', '10 p.p. ou mais'];
+      DIV.forEach(function (c, i) { it(c, t[i]); }); it(TEMA[st.tema].semDado, 'ainda não 100% apurado');
+      h.push('<p class="nota">Percentual de ' + esc(FIN[st.quem].nome) + ' no 2º turno menos o da eleição escolhida. Só lugares 100% apurados (comparação justa).</p>');
+    } else {
+      ['a', 'b'].forEach(function (q) { TONS[q].forEach(function (c, i) { it(c, FIN[q].nome + ' ' + ['até 5 p.p.', '5 a 15', '15 p.p. ou mais'][i]); }); });
+      it(TEMA[st.tema].semDado, 'sem dado');
+      if (eleMapa() === 't2') h.push('<p class="nota">Cor mais clara e transparente = apuração ainda em andamento no lugar.</p>');
+      else if (st.ele === 'auto') h.push('<p class="nota">Enquanto o 2º turno não começa, o mapa mostra o 1º turno.</p>');
+    }
+    return '<div class="leg">' + h.join('') + '</div>';
+  }
+
+  // ---- lista ordenável
+  function linhaDe(k) {
+    var v1 = base(k, 't1'), x = vivo(k), v2 = x && x.v, r = base(k, st.ref);
+    var d = x && x.completo && v2 && r ? pct(v2, 'a') - pct(r, 'a') : null;
+    return { k: k, nome: nomeDe(k), apur: x && x.ts ? 100 * x.st / x.ts : null, pa: pct(v2, 'a'), pb: pct(v2, 'b'), dif: d, aptos: v1 ? v1[I.aptos] : null, p1: pct(v1, 'a') };
+  }
+  function renderLista() {
+    var k = st.lugar, n = nivel(k), ops = opcoesVer(k), ver = n === 'mun' ? 'mun' : st.ver, ctl = [];
+    if (ops.length > 1) ctl.push('<span class="rot">Ver por:</span><div class="seg">' + ops.map(function (o) { return '<button data-ver="' + o + '" aria-pressed="' + (ver === o) + '">' + PLURAL[o] + '</button>'; }).join('') + '</div>');
+    ctl.push('<input class="busca" id="busca" data-busca="1" type="search" placeholder="Procurar lugar" aria-label="Procurar lugar na lista" value="' + esc(st.busca) + '">');
+    var ref = [['t1', '1º turno']].concat(COMP.map(function (c) { return [c.id, c.rot]; }));
+    ctl.push('<span class="rot">Mudança comparada com:</span><div class="seg">' + ref.map(function (o) { return '<button data-ref="' + o[0] + '" aria-pressed="' + (st.ref === o[0]) + '">' + o[1] + '</button>'; }).join('') + '</div>');
+    var busca = $('busca');
+    if (!(busca && document.activeElement === busca)) $('lista-ctl').innerHTML = '<div class="ctl">' + ctl.join('') + '</div>';
+    var u = ufDe(k);
+    if (u && !ufCarregada(u)) { $('lista').innerHTML = '<p class="rot">Abrindo os dados de ' + esc(NOME_UF[u] || u) + '…</p>'; return; }
+    var b = st.busca.trim().toLowerCase(), linhas = itens(k, ver).map(linhaDe).filter(function (l) { return !b || l.nome.toLowerCase().indexOf(b) >= 0; });
+    var o = st.ord, s = st.desc ? -1 : 1;
+    linhas.sort(function (p, q) {
+      if (o === 'nome') return s * p.nome.localeCompare(q.nome, 'pt-BR');
+      var a = p[o], c = q[o];
+      if (a == null && c == null) return p.nome.localeCompare(q.nome, 'pt-BR');
+      if (a == null) return 1; if (c == null) return -1;
+      return s * (a - c);
+    });
+    var total = linhas.length, mostrar = st.todos ? linhas : linhas.slice(0, 300);
+    var cols = [['nome', 'Lugar', ''], ['apur', 'Apurado', 'n'], ['pa', FIN.a.nome, 'n'], ['pb', FIN.b.nome, 'n'], ['dif', 'Mudança de ' + FIN.a.nome, 'n'], ['aptos', 'Eleitores', 'n']];
+    var h = ['<div class="tab-rola"><table class="tab"><thead><tr>'];
+    cols.forEach(function (c) { h.push('<th class="' + c[2] + '"><button data-ord="' + c[0] + '"' + (st.ord === c[0] ? ' aria-sort="' + (st.desc ? 'descending' : 'ascending') + '"' : '') + '>' + esc(c[1]) + (st.ord === c[0] ? (st.desc ? ' ▼' : ' ▲') : '') + '</button></th>'); });
+    h.push('</tr></thead><tbody>');
+    mostrar.forEach(function (l) {
+      var temFilhos = opcoesVer(l.k).length > 0 || nivel(l.k) === 'mun';
+      h.push('<tr' + (l.k === k ? ' class="sel"' : '') + '><td>' + (temFilhos || nivel(l.k) === 'zz' ? '<button data-ir="' + esc(l.k) + '">' + esc(l.nome) + '</button>' : esc(l.nome)) + (nivel(l.k) === 'zz' ? ' <small class="rot">(fora do mapa)</small>' : '') + '</td>' +
+        '<td class="n">' + (l.apur == null ? '—' : l.apur >= 100 ? '100%' : NP1.format(l.apur) + '%') + '</td><td class="n">' + fmtP(l.pa) + '</td><td class="n">' + fmtP(l.pb) + '</td><td class="n">' + fmtPP(l.dif) + '</td><td class="n">' + fmtN(l.aptos) + '</td></tr>');
+    });
+    h.push('</tbody></table></div>');
+    if (total > mostrar.length) h.push('<p class="nota">Mostrando ' + mostrar.length + ' de ' + total + '. <button class="btn" data-acao="todos">Mostrar todos</button></p>');
+    h.push('<p class="nota">Mudança = percentual de ' + esc(FIN.a.nome) + ' no 2º turno menos o da eleição escolhida, só nos lugares 100% apurados. Percentuais sobre os votos válidos.</p>');
+    $('lista').innerHTML = h.join('');
+  }
+  function renderAbas() {
+    document.body.setAttribute('data-aba', st.aba);
+    var bs = document.querySelectorAll('#abas-cel [data-aba]');
+    for (var i = 0; i < bs.length; i++) { if (bs[i].getAttribute('data-aba') === st.aba) bs[i].setAttribute('aria-current', 'page'); else bs[i].removeAttribute('aria-current'); }
+    if (st.aba === 'mapa' && MAPA) RELOGIO.depois(50, function () { MAPA.invalidateSize(); });
+  }
+
+  // ======================================================================
+  // Navegação
+  // ======================================================================
+  function ir(k) {
+    if (!BASE.lug[k] && k !== 'br') return Promise.resolve();
+    var antes = st.lugar, n = nivel(k);
+    // município aberto a partir de uma RM: o caminho passa pela RM (e continua por ela entre os vizinhos)
+    if (n === 'mun' && nivel(antes) === 'rm' && membros(antes).indexOf(k) >= 0) st.viaRm = antes;
+    else if (!(n === 'mun' && st.viaRm && membros(st.viaRm).indexOf(k) >= 0)) st.viaRm = null;
+    st.lugar = k; st.busca = ''; st.todos = false;
+    if (n !== 'mun') { var ops = opcoesVer(k); if (ops.indexOf(st.ver) < 0 || nivel(antes) !== n) st.ver = verPadrao(k); }
+    var u = ufDe(k), p = u ? garantirUf(u) : Promise.resolve();
+    render();
+    return Promise.resolve(p).then(function () {
+      if (n === 'uf' && opcoesVer(k).indexOf(st.ver) < 0) st.ver = verPadrao(k);
+      render();
+      // estado aberto: passa a acompanhar os municípios dele
+      if (u && AB.br && AB.br.lug['uf:' + u] && AB.br.lug['uf:' + u].st > 0 && !AB.uf[u]) cicloUf(u).then(pedirRender);
+    });
+  }
+
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-ir],[data-ver],[data-mapa],[data-ele],[data-ref],[data-quem],[data-ord],[data-aba],[data-acao]');
+    if (!b) return;
+    var v;
+    if ((v = b.getAttribute('data-ir')) != null) { ir(v); return; }
+    if ((v = b.getAttribute('data-ver')) != null) { st.ver = v; st.todos = false; QUADRO = ''; render(); return; }
+    if ((v = b.getAttribute('data-mapa')) != null) { st.mapa = v; render(); return; }
+    if ((v = b.getAttribute('data-ele')) != null) { st.ele = v; render(); return; }
+    if ((v = b.getAttribute('data-ref')) != null) { st.ref = v; render(); return; }
+    if ((v = b.getAttribute('data-quem')) != null) { st.quem = v; render(); return; }
+    if ((v = b.getAttribute('data-ord')) != null) { if (st.ord === v) st.desc = !st.desc; else { st.ord = v; st.desc = v !== 'nome'; } render(); return; }
+    if ((v = b.getAttribute('data-aba')) != null) { st.aba = v; render(); return; }
+    if ((v = b.getAttribute('data-acao')) != null) {
+      if (v === 'atualizar') { if (BASE.fonte) ciclo(); }
+      else if (v === 'tema') { st.tema = st.tema === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', st.tema); render(); }
+      else if (v === 'todos') { st.todos = true; render(); }
+    }
+  });
+  document.addEventListener('input', function (ev) {
+    var t = ev.target;
+    if (t && t.getAttribute && t.getAttribute('data-busca') != null) { st.busca = t.value || ''; renderLista(); }
+  });
+
+  // ======================================================================
+  // Início
+  // ======================================================================
+  function iniciar() {
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) { st.tema = 'dark'; document.documentElement.setAttribute('data-theme', 'dark'); }
+    if (window.matchMedia && window.matchMedia('(max-width: 760px)').matches) st.aba = 'resumo';
+    render();
+    var parar = false;
+    return carregarBase().then(null, function () {
+      if (MODO === 'demo') { parar = true; AO.aviso = 'A demonstração precisa da base do projeto (pasta aovivo_dados), que não abriu.'; return; }
+      return carregarReserva();
+    }).then(function () {
+      var alvo = Q.get('ir');
+      render();
+      if (parar) return;
+      return alvo && (BASE.lug[alvo] || /^(mun|int|ime|rm|zon):/.test(alvo)) ? irPara(alvo) : null;
+    }).then(function () { if (!OPC.semCiclo && !parar) return ciclo(); });
+  }
+  // ?ir= aceita qualquer nível; abre o estado antes, se for preciso (o estado vem do código do município no IBGE ou da base)
+  function irPara(alvo) {
+    if (BASE.lug[alvo]) return ir(alvo);
+    var u = (Q.get('uf') || '').toUpperCase();
+    if (!u) return ir('br');
+    return Promise.resolve(garantirUf(u)).then(function () { return ir(BASE.lug[alvo] ? alvo : 'uf:' + u); });
+  }
+
+  window.AoVivo = {
+    st: st, BASE: BASE, VIVO: VIVO, AB: AB, AO: AO, FILA: FILA, DEMO: DEMO, URLS: URLS, MODO: MODO, I: I,
+    get FIN() { return FIN; }, get ELE() { return ELE; }, get COMP() { return COMP; },
+    lerU: lerU, lerAb: lerAb, Fila: Fila, vivo: vivo, base: base, justa: justa, caminho: caminho, pai: pai, itens: itens, membros: membros,
+    opcoesVer: opcoesVer, ir: ir, irPara: irPara, render: render, ciclo: ciclo, corDe: corDe, pct: pct, garantirUf: garantirUf, ele2: ele2,
+    pronto: iniciar()
+  };
+})();
+</script>
+</body>
+</html>
