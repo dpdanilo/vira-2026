@@ -174,6 +174,7 @@ body[data-aba="resumo"] .tela>[data-sec="resumo"],body[data-aba="mapa"] .tela>[d
 .vbar .n{font-variant-numeric:tabular-nums;font-weight:800;text-align:right;line-height:1.15}
 .vbar .n small{display:block;font-weight:400;color:var(--sub);font-size:.68rem}
 .placar .fins{margin-top:8px}
+.proj .hist svg{max-width:620px}
 .abn{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
 .abn .vl{font-size:1.2rem}
 .abn .ds{font-size:.72rem}
@@ -390,6 +391,9 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
   var CADASTRO = OPC.cadastro || { form: '', nome: '', email: '', cidade: '' };
   // Contador de acessos (Umami Cloud, sem cookies): o "Website ID" do site no Umami. Vazio = desligado.
   var CONTADOR = OPC.contador != null ? OPC.contador : '';
+  // Projeção do resultado final: só no site da conta pessoal do dono (dpdanilo.github.io) ou com ?projecao=1
+  var HOST = (window.location && location.hostname) || '';
+  var PROJ = OPC.projecao != null ? !!OPC.projecao : HOST === 'dpdanilo.github.io' || (Q.get('projecao') === '1' && !/periferiascomlula/.test(HOST));
   var TSE_RAIZ = 'https://resultados.tse.jus.br/oficial';
   var PASTA = OPC.pasta || 'aovivo_dados/';
   // reserva (sem a base): os mesmos códigos do ele-c.json do TSE
@@ -424,7 +428,7 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
   // Estado
   // ======================================================================
   var st = { lugar: 'br', ver: 'uf', viaRm: null, mapa: 'lider', ele: 'auto', ref: 't1', quem: 'b', ord: 'aptos', desc: true,
-    busca: '', todos: false, aba: LITE ? 'viro' : 'resumo', tema: 'light', vver: 'mun', vord: 'ganho', vdesc: true, vtodos: false, gaveta: null, vbar: 'uf' };
+    busca: '', todos: false, aba: LITE ? 'viro' : 'resumo', tema: 'light', vver: 'mun', vord: 'ganho', vdesc: true, vtodos: false, gaveta: null, vbar: 'uf', vbarModo: 'viro', vbarTodos: false };
   var BASE = { fonte: null, ind: null, lug: {}, v: { t1: {} }, geo: { uf: {}, reg: {}, mun: {}, int: {}, ime: {}, rm: {} },
     ufDe: {}, membros: {}, carregadas: {}, gerado: '', todas: false, todosMuns: null };
   // "Brasil inteiro" (municípios, regiões do IBGE e RMs sem escolher um estado; Virômetro do Brasil): abre a base de todos os
@@ -1467,32 +1471,199 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
     return c.join('') + '</div>';
   }
   // barras por Grande Região ou por estado: % do caminho até a meta (finalistas) ou mudança do desinteresse em p.p.
+  // barras por Grande Região, estado ou (dentro de um estado) município, em dois modos:
+  //   Virômetro = % do caminho até a meta (finalistas) ou mudança do desinteresse em p.p.;  Apuração = % das seções apuradas
   function cartaoBarras(k, q) {
-    var n = nivel(k), ver = n === 'reg' ? 'uf' : st.vbar, D = q === 'd';
-    var us = n === 'reg' ? itens(k, 'uf') : Object.keys(BASE.lug).filter(function (x) { return nivel(x) === ver; });
+    var n = nivel(k), ver = n === 'reg' ? 'uf' : n === 'uf' ? 'mun' : st.vbar, D = q === 'd', AP = st.vbarModo === 'apur';
+    var us = n === 'reg' ? itens(k, 'uf') : n === 'uf' ? membros(k).slice() : Object.keys(BASE.lug).filter(function (x) { return nivel(x) === ver; });
     var ls = us.map(function (x) {
+      if (AP) {
+        var y = vivo(x), pu = nivel(x) === 'mun' ? progresso('uf:' + ufDe(x)) : null;
+        if (!y && pu && pu.st === 0) return { k: x, nome: nomeDe(x), ap: null, val: 0 };   // o estado ainda não começou: 0%
+        return { k: x, nome: nomeDe(x), ap: y, val: y && y.ts ? 100 * y.st / y.ts : null };
+      }
       var a = agg(munsDe(x) || [], q), val = null;
       if (a.n) val = D ? desDe(a).dd : a.chegou ? Math.max(100, a.prog == null ? 100 : a.prog) : a.prog == null ? 0 : a.prog;
       return { k: x, nome: nomeDe(x), a: a, val: val };
-    }).sort(function (x, y) { return x.val == null ? 1 : y.val == null ? -1 : y.val - x.val; });
+    }).sort(function (x, y) { return x.val == null && y.val == null ? x.nome.localeCompare(y.nome, 'pt-BR') : x.val == null ? 1 : y.val == null ? -1 : y.val - x.val || x.nome.localeCompare(y.nome, 'pt-BR'); });
     var vs = ls.filter(function (l) { return l.val != null; }).map(function (l) { return l.val; });
-    var lo = D ? -Math.max(1, Math.max.apply(null, [0].concat(vs.map(Math.abs)))) : Math.min(0, Math.min.apply(null, [0].concat(vs)));
-    var hi = D ? -lo : Math.max(100, Math.max.apply(null, [0].concat(vs)));
+    var lo = AP ? 0 : D ? -Math.max(1, Math.max.apply(null, [0].concat(vs.map(Math.abs)))) : Math.min(0, Math.min.apply(null, [0].concat(vs)));
+    var hi = AP ? 100 : D ? -lo : Math.max(100, Math.max.apply(null, [0].concat(vs)));
     var P = function (v) { return 100 * (v - lo) / (hi - lo); }, z = P(0);
-    var h = ['<div class="vcard larga"><h3>' + (D ? 'Desinteresse' : 'Virômetro') + ' por ' + (ver === 'reg' ? 'Grande Região' : 'estado') + '</h3>'];
-    if (n === 'br') h.push('<div class="ctl"><div class="seg">' + [['reg', 'Grandes Regiões'], ['uf', 'Estados']].map(function (o) { return '<button data-vbar="' + o[0] + '" aria-pressed="' + (ver === o[0]) + '">' + o[1] + '</button>'; }).join('') + '</div></div>');
+    var nomeNiv = ver === 'reg' ? 'Grande Região' : ver === 'mun' ? 'município' : 'estado';
+    var h = ['<div class="vcard larga"><h3>' + (AP ? 'Apuração' : D ? 'Desinteresse' : 'Virômetro') + ' por ' + nomeNiv + '</h3><div class="ctl"><div class="seg">' +
+      [['viro', D ? 'Desinteresse' : 'Virômetro'], ['apur', 'Apuração']].map(function (o) { return '<button data-vbarmodo="' + o[0] + '" aria-pressed="' + ((AP ? 'apur' : 'viro') === o[0]) + '">' + o[1] + '</button>'; }).join('') + '</div>'];
+    if (n === 'br') h.push('<div class="seg">' + [['reg', 'Grandes Regiões'], ['uf', 'Estados']].map(function (o) { return '<button data-vbar="' + o[0] + '" aria-pressed="' + (ver === o[0]) + '">' + o[1] + '</button>'; }).join('') + '</div>');
+    h.push('</div>');
+    if (AP && n !== 'uf') { var b = vivo(k); if (b && b.ts) h.push('<p class="rot">' + esc(nomeDe(k)) + ': <b>' + NP2.format(100 * b.st / b.ts) + '%</b> das seções apuradas (' + fmtN(b.st) + ' de ' + fmtN(b.ts) + ').</p>'); }
+    if (ver === 'mun' && !ufCarregada(ufDe(k))) return h.join('') + '<p class="rot">Abrindo os municípios…</p></div>';
+    var LIM = 40, mostrar = ver === 'mun' && !st.vbarTodos ? ls.slice(0, LIM) : ls;
     h.push('<div class="vbars">');
-    ls.forEach(function (l) {
-      var a = l.a, cor = l.val == null ? 'transparent' : D ? corDes(l.val) : coresViro(q)[faixaViro(a) || 'p0'];
+    mostrar.forEach(function (l) {
+      var cor, txt, sub = '', claro = false;
+      if (AP) {
+        var y = l.ap; cor = l.val == null ? 'transparent' : l.val >= 100 ? SEQ[4] : l.val >= 75 ? SEQ[3] : l.val >= 50 ? SEQ[2] : SEQ[1];
+        txt = l.val == null ? 'sem dado' : l.val >= 100 ? '100%' : NP1.format(l.val) + '%';
+        sub = y && y.ts ? fmtN(y.st) + ' de ' + fmtN(y.ts) + ' seções' : '';
+      } else {
+        var a = l.a; cor = l.val == null ? 'transparent' : D ? corDes(l.val) : coresViro(q)[faixaViro(a) || 'p0']; claro = !a.final;
+        txt = l.val == null ? 'aguardando' : D ? fmtPP(l.val) : NF.format(Math.round(l.val)) + '%';
+        sub = (D || !a.n ? '' : fmtS(a.ganho) + ' · ') + (a.aptosTot ? NF.format(Math.round(100 * a.aptos / a.aptosTot)) + '% tot.' : '');
+      }
       var x0 = l.val == null ? z : Math.min(z, P(l.val)), w = l.val == null ? 0 : Math.abs(P(l.val) - z);
-      var tot = a.aptosTot ? NF.format(Math.round(100 * a.aptos / a.aptosTot)) + '% tot.' : '';
-      var txt = l.val == null ? 'aguardando' : D ? fmtPP(l.val) : NF.format(Math.round(l.val)) + '%';
       h.push('<div class="vbar"><button class="lk" data-ir="' + esc(l.k) + '" title="' + esc(l.nome) + '">' + esc(l.nome) + '</button>' +
-        '<span class="vtr"><i style="left:' + x0.toFixed(1) + '%;width:' + w.toFixed(1) + '%;background:' + cor + (a.final ? '' : ';opacity:.55') + '"></i>' +
-        (D ? '<b style="left:' + z.toFixed(1) + '%"></b>' : '<b style="left:' + P(100).toFixed(1) + '%" title="meta 2022"></b>') + '</span>' +
-        '<span class="n">' + txt + '<small>' + (D || !a.n ? '' : fmtS(a.ganho) + ' · ') + tot + '</small></span></div>');
+        '<span class="vtr"><i style="left:' + x0.toFixed(1) + '%;width:' + w.toFixed(1) + '%;background:' + cor + (claro ? ';opacity:.55' : '') + '"></i>' +
+        (AP ? '' : D ? '<b style="left:' + z.toFixed(1) + '%"></b>' : '<b style="left:' + P(100).toFixed(1) + '%" title="meta 2022"></b>') + '</span>' +
+        '<span class="n">' + txt + '<small>' + sub + '</small></span></div>');
     });
-    h.push('</div><p class="nota">' + (D ? 'Mudança do desinteresse em p.p. (2º − 1º turno) nos municípios totalizados; a linha marca o zero.' : '% do caminho até a meta fixa (a linha tracejada = ' + esc(metaRot(q)) + ').') + ' “tot.” = parte dos eleitores em municípios já totalizados; barra clara = apuração em andamento. Toque no nome para abrir.</p></div>');
+    h.push('</div>');
+    if (ls.length > mostrar.length) h.push('<p class="nota">Mostrando ' + mostrar.length + ' de ' + fmtN(ls.length) + ' municípios. <button class="btn" data-acao="vbartodos">Mostrar todos</button></p>');
+    h.push('<p class="nota">' + (AP ? '% das seções já apuradas pelo TSE (cinza mais escuro = mais adiantado).' + (ver === 'mun' ? ' Municípios do estado aberto, de minuto em minuto.' : '') : (D ? 'Mudança do desinteresse em p.p. (2º − 1º turno) nos municípios totalizados; a linha marca o zero.' : '% do caminho até a meta fixa (a linha tracejada = ' + esc(metaRot(q)) + ').') + ' “tot.” = parte dos eleitores em municípios já totalizados; barra clara = apuração em andamento.') + ' Toque no nome para abrir.</p></div>');
+    return h.join('');
+  }  // ======================================================================
+  // Projeção do resultado final (experimental; só no site dpdanilo)
+  // Padrão espacial: em cada município TOTALIZADO mede-se a mudança do 1º para o 2º turno
+  //   d = logit(Lula ÷ (Lula + Flávio) no 2º) − logit(o mesmo no 1º)   e   t = log((Lula + Flávio) no 2º ÷ no 1º)
+  // e estima-se d e t de cada município ainda não totalizado pelos vizinhos, em camadas (imediata → estado → região → Brasil),
+  // puxando para a camada de cima quando há poucos votos observados (encolhimento). O parcial de cada estado entra como
+  // informação extra, com peso menor (as seções apuradas primeiro podem não representar o estado).
+  // Padrão temporal: compara o 1º turno dos lugares já totalizados com o do lugar inteiro (viés da ordem da apuração)
+  // e guarda a projeção a cada novidade do TSE. Incerteza: 300 simulações com choques por região e por estado.
+  // ======================================================================
+  function logit(p) { return Math.log(p / (1 - p)); }
+  function expit(x) { return 1 / (1 + Math.exp(-x)); }
+  function sorteio(sem) { var s = sem >>> 0 || 1; return function () { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
+  function gauss(r) { var u = Math.max(1e-12, r()), v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  var PROJ_CACHE = { chave: '', r: null }, HPROJ = [];
+  // a linha do tempo fica guardada no aparelho (só no modo real), para não se perder ao recarregar a página
+  try { if (MODO !== 'demo') HPROJ = JSON.parse(localStorage.getItem('vira-proj-' + MODO + ele2()) || '[]') || []; } catch (e) { HPROJ = []; }
+  function projetar() {
+    if (!BASE.todas || !BASE.todosMuns) return null;
+    var br = vivo('br');
+    var chave = (AB.br ? AB.br.quando : '') + '|' + (br && br.v ? br.v[I.validos] + '|' + br.st : '') + '|' + Object.keys(VIVO).length;
+    if (PROJ_CACHE.chave === chave) return PROJ_CACHE.r;
+    var G = {}, K = { reg: 3e5, uf: 1e5, ime: 3e4 }, obs = 0, aptObs = 0, aptTot = 0, totUf = {};
+    function g(k) { return G[k] || (G[k] = { w: 0, d: 0, wt: 0, t: 0, n: 0 }); }
+    var ls = [];
+    BASE.todosMuns.forEach(function (m) {
+      var b1 = base(m, 't1'); if (!b1) return;
+      var l = BASE.lug[m] || {}, u = ufDe(m), L1 = b1[I.b], F1 = b1[I.a];
+      var o = { L1: L1, F1: F1, q1: (L1 + 0.5) / (L1 + F1 + 1), ime: 'ime:' + (l.ime || u), uf: 'uf:' + u, reg: 'reg:' + regDe(m) };
+      aptTot += b1[I.aptos];
+      var x = vivo(m);
+      if (x && x.completo && x.v) {
+        o.ok = true; o.L2 = x.v[I.b]; o.F2 = x.v[I.a]; aptObs += b1[I.aptos];
+        totUf[o.uf] = (totUf[o.uf] || 0) + o.L2 + o.F2;
+        var w = L1 + F1;
+        if (w > 0 && o.L2 + o.F2 > 0) {
+          var d = logit((o.L2 + 0.5) / (o.L2 + o.F2 + 1)) - logit(o.q1), t = Math.log((o.L2 + o.F2 + 1) / (w + 1));
+          [o.ime, o.uf, o.reg, 'br'].forEach(function (k) { var z = g(k); z.w += w; z.d += w * d; z.wt += w; z.t += w * t; z.n++; });
+          obs++;
+        }
+      }
+      ls.push(o);
+    });
+    // parcial de cada estado ainda não terminado: informação extra sobre d (peso 30% dos votos ainda não vistos nos totalizados)
+    Object.keys(BASE.ind.ufs).forEach(function (u) {
+      var x = vivo('uf:' + u), b1 = base('uf:' + u, 't1'); if (!x || !x.v || !b1 || x.completo) return;
+      var L2 = x.v[I.b], F2 = x.v[I.a], resto = L2 + F2 - (totUf['uf:' + u] || 0); if (L2 + F2 < 1000 || resto <= 0) return;
+      var d = logit(L2 / (L2 + F2)) - logit(b1[I.b] / (b1[I.b] + b1[I.a])), w = 0.3 * resto;
+      ['uf:' + u, 'reg:' + ((BASE.lug['uf:' + u] || {}).reg || UF_REG[u]), 'br'].forEach(function (k) { var z = g(k); z.w += w; z.d += w * d; });
+    });
+    if (!G.br || !G.br.w) { PROJ_CACHE = { chave: chave, r: { vazio: true } }; return PROJ_CACHE.r; }
+    var V1 = 0, LF1 = 0; ls.forEach(function (o) { LF1 += o.L1 + o.F1; });
+    var b1br = BASE.v.t1.br; V1 = b1br ? b1br[I.validos] : LF1;
+    var dBr = G.br.d / G.br.w, tBr = G.br.wt ? G.br.t / G.br.wt : Math.log(V1 / LF1) - 0.02;
+    function enc(k, pai, kk, c, p) { var z = G[k]; return z && z[p] ? (z[c] + kk * pai) / (z[p] + kk) : pai; }
+    ls.forEach(function (o) {
+      if (o.ok) return;
+      var dR = enc(o.reg, dBr, K.reg, 'd', 'w'), dU = enc(o.uf, dR, K.uf, 'd', 'w'), tR = enc(o.reg, tBr, K.reg, 't', 'wt'), tU = enc(o.uf, tR, K.uf, 't', 'wt');
+      o.d = enc(o.ime, dU, K.ime, 'd', 'w'); o.t = enc(o.ime, tU, K.ime, 't', 'wt');
+    });
+    // exterior: resultado real se terminou; senão o 1º turno com a mudança do Brasil
+    var zz = vivo('zz'), z1 = base('zz', 't1'), ext = { L: 0, F: 0 };
+    if (zz && zz.completo && zz.v) ext = { L: zz.v[I.b], F: zz.v[I.a] };
+    else if (z1) { var tot = (z1[I.b] + z1[I.a]) * Math.exp(tBr), p = expit(logit((z1[I.b] + 0.5) / (z1[I.b] + z1[I.a] + 1)) + dBr); ext = { L: tot * p, F: tot * (1 - p) }; }
+    function somaCom(choque) {
+      var L = ext.L, F = ext.F;
+      ls.forEach(function (o) {
+        if (o.ok) { L += o.L2; F += o.F2; return; }
+        var tot = (o.L1 + o.F1) * Math.exp(o.t), p = expit(logit(o.q1) + o.d + (choque ? choque(o) : 0));
+        L += tot * p; F += tot * (1 - p);
+      });
+      return { L: L, F: F, p: 100 * L / (L + F) };
+    }
+    var central = somaCom(null), r = sorteio(12345), sims = [], ufs = Object.keys(BASE.ind.ufs), regs = Object.keys(REGIOES);
+    // sensibilidade de cada estado: quanto os votos de Lula ainda não vistos mudam com um erro e no logit (≈ Σ total·p·(1−p)·e)
+    var sens = {}, regUf = {};
+    ls.forEach(function (o) {
+      if (o.ok) return;
+      var tot = (o.L1 + o.F1) * Math.exp(o.t), p = expit(logit(o.q1) + o.d);
+      sens[o.uf] = (sens[o.uf] || 0) + tot * p * (1 - p); regUf[o.uf] = o.reg;
+    });
+    var T = central.L + central.F;
+    for (var s = 0; s < 300; s++) {
+      var cb = gauss(r) * 0.03 / Math.sqrt(1 + obs / 50), cr = {}, dL = 0;
+      regs.forEach(function (x) { cr['reg:' + x] = gauss(r) * 0.04; });
+      ufs.forEach(function (u) { var k = 'uf:' + u, n = G[k] ? G[k].n : 0, e = gauss(r) * 0.12 / Math.sqrt(1 + n / 5); if (sens[k]) dL += sens[k] * (cb + (cr[regUf[k]] || 0) + e); });
+      sims.push(100 * Math.max(0, Math.min(T, central.L + dL)) / T);
+    }
+    sims.sort(function (a, b) { return a - b; });
+    // padrão da apuração por Grande Região
+    var porReg = regs.map(function (x) {
+      var st = 0, ts = 0, n = 0, nt = 0, q1o = [0, 0], q1t = [0, 0], Lp = 0, Fp = 0;
+      Object.keys(BASE.ind.ufs).forEach(function (u) { if (((BASE.lug['uf:' + u] || {}).reg || UF_REG[u]) !== x) return; var e = AB.br && AB.br.lug['uf:' + u]; if (e) { st += e.st; ts += e.ts; } });
+      ls.forEach(function (o) {
+        if (o.reg !== 'reg:' + x) return;
+        nt++; q1t[0] += o.L1; q1t[1] += o.F1;
+        if (o.ok) { n++; q1o[0] += o.L1; q1o[1] += o.F1; Lp += o.L2; Fp += o.F2; }
+        else { var tot = (o.L1 + o.F1) * Math.exp(o.t), p = expit(logit(o.q1) + o.d); Lp += tot * p; Fp += tot * (1 - p); }
+      });
+      return { k: 'reg:' + x, nome: REGIOES[x], apur: ts ? 100 * st / ts : 0, n: n, nt: nt, q1o: q1o[0] + q1o[1] ? 100 * q1o[0] / (q1o[0] + q1o[1]) : null, q1t: 100 * q1t[0] / (q1t[0] + q1t[1]), proj: 100 * Lp / (Lp + Fp) };
+    });
+    var q1o = [0, 0], q1t = [0, 0]; ls.forEach(function (o) { q1t[0] += o.L1; q1t[1] += o.F1; if (o.ok) { q1o[0] += o.L1; q1o[1] += o.F1; } });
+    var res = { proj: central.p, lo: sims[14], hi: sims[284], chance: 100 * sims.filter(function (p) { return p > 50; }).length / sims.length,
+      parc: br && br.v && br.v[I.validos] ? pct(br.v, 'b') : null, apur: br && br.ts ? 100 * br.st / br.ts : 0, obs: obs, nMun: ls.length, cob: aptTot ? 100 * aptObs / aptTot : 0,
+      q1o: q1o[0] + q1o[1] ? 100 * q1o[0] / (q1o[0] + q1o[1]) : null, q1t: 100 * q1t[0] / (q1t[0] + q1t[1]), porReg: porReg, margem: central.L - central.F };
+    // linha do tempo: um ponto a cada novidade da apuração
+    var ult = HPROJ[HPROJ.length - 1];
+    if (!ult || Math.abs(ult.apur - res.apur) >= 0.05 || ult.obs !== obs) {
+      HPROJ.push({ h: AB.br ? AB.br.quando.trim().split(' ')[1] || '' : '', apur: +res.apur.toFixed(2), parc: res.parc == null ? null : +res.parc.toFixed(2), proj: +res.proj.toFixed(2), lo: +res.lo.toFixed(2), hi: +res.hi.toFixed(2), obs: obs });
+      if (HPROJ.length > 400) HPROJ.shift();
+      try { if (MODO !== 'demo') localStorage.setItem('vira-proj-' + MODO + ele2(), JSON.stringify(HPROJ)); } catch (e) { /* ok */ }
+    }
+    PROJ_CACHE = { chave: chave, r: res };
+    return res;
+  }
+  // projeção ao longo da apuração: faixa provável, projeção (vermelho) e parcial (cinza tracejado); eixo x = % das seções
+  function svgProj(hs) {
+    if (hs.length < 2) return '<p class="nota">A linha do tempo aparece depois de algumas atualizações do TSE.</p>';
+    var W = 360, H = 170, x0 = 34, x1 = W - 8, y0 = 10, y1 = H - 24, vals = [];
+    hs.forEach(function (p) { vals.push(p.lo, p.hi, p.proj); if (p.parc != null) vals.push(p.parc); });
+    var mn = Math.min.apply(null, vals.concat([50])) - 1, mx = Math.max.apply(null, vals.concat([50])) + 1;
+    var X = function (a) { return x0 + (x1 - x0) * a / 100; }, Y = function (v) { return y1 - (y1 - y0) * (v - mn) / (mx - mn); }, s = [];
+    s.push('<line x1="' + x0 + '" x2="' + x1 + '" y1="' + Y(50).toFixed(1) + '" y2="' + Y(50).toFixed(1) + '" stroke="var(--sub)" stroke-dasharray="3 3"/><text x="2" y="' + (Y(50) + 4).toFixed(1) + '">50%</text>');
+    s.push('<path d="M' + hs.map(function (p) { return X(p.apur).toFixed(1) + ' ' + Y(p.hi).toFixed(1); }).join(' L') + ' L' + hs.slice().reverse().map(function (p) { return X(p.apur).toFixed(1) + ' ' + Y(p.lo).toFixed(1); }).join(' L') + 'Z" fill="var(--cor-b)" fill-opacity=".12"/>');
+    var pc = hs.filter(function (p) { return p.parc != null; });
+    if (pc.length > 1) s.push('<polyline fill="none" stroke="var(--sub)" stroke-width="1.5" stroke-dasharray="4 3" points="' + pc.map(function (p) { return X(p.apur).toFixed(1) + ',' + Y(p.parc).toFixed(1); }).join(' ') + '"/>');
+    s.push('<polyline fill="none" stroke="var(--cor-b)" stroke-width="2.5" points="' + hs.map(function (p) { return X(p.apur).toFixed(1) + ',' + Y(p.proj).toFixed(1); }).join(' ') + '"/>');
+    [0, 25, 50, 75, 100].forEach(function (a) { s.push('<text x="' + X(a).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle">' + a + '%</text>'); });
+    return '<div class="hist"><svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Projeção ao longo da apuração">' + s.join('') + '</svg></div><p class="nota"><span style="color:var(--cor-b);font-weight:800">—</span> projeção de Lula · faixa provável · <span style="color:var(--sub)">- - -</span> placar parcial; eixo = % das seções apuradas no Brasil.</p>';
+  }
+  function cartaoProjecao() {
+    var R = projetar(), h = ['<div class="vcard larga proj"><h3>Projeção do resultado final <span class="rot">(experimental · só neste site)</span></h3>'];
+    if (!R) return h.join('') + '<p class="rot">Abrindo os dados de todos os estados…</p></div>';
+    if (R.vazio) return h.join('') + '<p class="rot">Aparece quando os primeiros municípios forem totalizados.</p></div>';
+    h.push('<div class="fins">' + [['b', R.proj, R.lo, R.hi], ['a', 100 - R.proj, 100 - R.hi, 100 - R.lo]].map(function (z) {
+      return '<div class="fin" style="--c:var(--cor-' + z[0] + ')"><div class="nm">' + esc(FIN[z[0]].nome) + ' · projeção</div><div class="pc">' + fmtP(z[1]) + '</div><div class="vt">faixa provável: ' + fmtP(z[2]) + ' a ' + fmtP(z[3]) + '</div></div>';
+    }).join('') + '</div>');
+    h.push('<p class="rot" style="margin-top:8px">Chance de ' + esc(FIN.b.nome) + ' terminar à frente: <b>' + NF.format(Math.round(R.chance)) + '%</b> (em 300 simulações) · margem projetada: <b>' + fmtS(Math.round(R.margem)) + '</b> votos para ' + esc(FIN.b.nome) + '.</p>');
+    h.push('<p class="rot">Placar parcial agora: ' + fmtP(R.parc) + ' para ' + esc(FIN.b.nome) + ' com ' + fmtP(R.apur) + ' das seções. Base da projeção: ' + fmtN(R.obs) + ' municípios totalizados (' + fmtP(R.cob) + ' dos eleitores) + o parcial dos estados.</p>');
+    if (R.q1o != null) h.push('<p class="rot"><b>Viés da ordem da apuração:</b> no 1º turno, os municípios já totalizados deram ' + fmtP(R.q1o) + ' a ' + esc(FIN.b.nome) + ' entre os dois finalistas; o Brasil inteiro, ' + fmtP(R.q1t) + ' (' + fmtPP(R.q1o - R.q1t) + '). ' + (Math.abs(R.q1o - R.q1t) >= 1 ? 'Por isso o placar parcial ainda não representa o país; a projeção corrige isso.' : 'O que já foi apurado está perto de representar o país.') + '</p>');
+    h.push('<h4 style="margin:12px 0 4px">Ao longo da apuração</h4>' + svgProj(HPROJ));
+    h.push('<h4 style="margin:12px 0 4px">Padrão da apuração por região</h4><div class="tab-x"><table class="tab"><thead><tr><th>Região</th><th class="n">Seções apuradas</th><th class="n">Municípios totalizados</th><th class="n">' + esc(FIN.b.nome) + ' no 1º turno<br><small>totalizados × região</small></th><th class="n">' + esc(FIN.b.nome) + ' projetado</th></tr></thead><tbody>');
+    R.porReg.forEach(function (x) { h.push('<tr><td>' + esc(x.nome) + '</td><td class="n">' + fmtP(x.apur) + '</td><td class="n">' + fmtN(x.n) + ' de ' + fmtN(x.nt) + '</td><td class="n">' + fmtP(x.q1o) + ' × ' + fmtP(x.q1t) + '</td><td class="n"><b>' + fmtP(x.proj) + '</b></td></tr>'); });
+    h.push('</tbody></table></div><p class="nota">Como funciona: em cada município já totalizado mede-se quanto o voto andou do 1º para o 2º turno (entre os dois finalistas) e quanto cresceu o total de votos dos dois. Para cada município ainda não totalizado, essas mudanças são estimadas pelos vizinhos (região imediata, estado, região e Brasil, com menos peso quando há poucos dados) e aplicadas ao 1º turno dele. A faixa vem de 300 simulações com erros por região e por estado. É uma estimativa estatística, não o resultado; o oficial é o do TSE.</p></div>');
     return h.join('');
   }
   function cartaoMeta(A, q) {
@@ -1542,6 +1713,7 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
     var corUp = D ? 'var(--cor-d)' : 'var(--cor-' + q + ')', corDown = D ? DES.menos : 'var(--cor-' + o + ')';
     h.push('<div class="viro-grade">');
     h.push(cartaoApur(k, A));
+    if (PROJ && n === 'br') h.push(cartaoProjecao());
     // 1) o medidor (finalistas) ou o desinteresse com as duas partes
     h.push(D ? cartaoDes(k, A, mid) : cartaoMeta(A, q));
     // 2) o somatório
@@ -1563,7 +1735,7 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
     }
     h.push('</div>' + (n === 'br' && !LITE ? '<p class="nota">Exterior fora da conta (não tem município).</p>' : '') + '</div>');
     // Brasil e Grande Região: barras por região e por estado
-    if (n === 'br' || n === 'reg') h.push(cartaoBarras(k, q));
+    if (n === 'br' || n === 'reg' || n === 'uf') h.push(cartaoBarras(k, q));
     // 3) a contagem
     var ver = n === 'mun' ? 'mun' : verViro(k), ops = n === 'mun' ? [] : opcoesVer(k), C = { cresceu: 0, igual: 0, caiu: 0, aguardando: 0, bateu: 0 }, H = {}, linhas = [];
     us.forEach(function (x) {
@@ -1764,7 +1936,7 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
     // município aberto a partir de uma RM: o caminho passa pela RM (e continua por ela entre os vizinhos)
     if (n === 'mun' && nivel(antes) === 'rm' && membros(antes).indexOf(k) >= 0) st.viaRm = antes;
     else if (!(n === 'mun' && st.viaRm && membros(st.viaRm).indexOf(k) >= 0)) st.viaRm = null;
-    st.lugar = k; st.busca = ''; st.todos = false; st.vtodos = false;
+    st.lugar = k; st.busca = ''; st.todos = false; st.vtodos = false; st.vbarTodos = false;
     if (n !== 'mun') { var ops = opcoesVer(k); if (ops.indexOf(st.ver) < 0 || nivel(antes) !== n) st.ver = verPadrao(k); }
     var u = ufDe(k), p = u ? garantirUf(u) : Promise.resolve();
     render();
@@ -1777,7 +1949,7 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
   }
 
   document.addEventListener('click', function (ev) {
-    var b = ev.target.closest('[data-ir],[data-ver],[data-mapa],[data-ele],[data-ref],[data-quem],[data-ord],[data-aba],[data-acao],[data-vver],[data-vord],[data-vbar]');
+    var b = ev.target.closest('[data-ir],[data-ver],[data-mapa],[data-ele],[data-ref],[data-quem],[data-ord],[data-aba],[data-acao],[data-vver],[data-vord],[data-vbar],[data-vbarmodo]');
     if (!b) return;
     var v;
     if ((v = b.getAttribute('data-ir')) != null) { ir(v); return; }
@@ -1789,6 +1961,7 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
     if ((v = b.getAttribute('data-ord')) != null) { if (st.ord === v) st.desc = !st.desc; else { st.ord = v; st.desc = v !== 'nome'; } render(); return; }
     if ((v = b.getAttribute('data-aba')) != null) { st.aba = v; contar('aba-' + v); render(); return; }
     if ((v = b.getAttribute('data-vbar')) != null) { st.vbar = v; render(); return; }
+    if ((v = b.getAttribute('data-vbarmodo')) != null) { st.vbarModo = v; render(); return; }
     if ((v = b.getAttribute('data-vver')) != null) { st.vver = v; st.vtodos = false; render(); return; }
     if ((v = b.getAttribute('data-vord')) != null) { if (st.vord === v) st.vdesc = !st.vdesc; else { st.vord = v; st.vdesc = v !== 'nome'; } render(); return; }
     if ((v = b.getAttribute('data-acao')) != null) {
@@ -1807,6 +1980,7 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
       else if (v === 'nota') { NOTA = !NOTA; if (NOTA) contar('como-funciona'); renderNota(); }
       else if (v === 'testar-tse') testarTse();
       else if (v === 'viroaba') { st.aba = 'viro'; render(); }
+      else if (v === 'vbartodos') { st.vbarTodos = true; render(); }
       else if (v === 'vtab') { st.vtab = !st.vtab; render(); }
       else if (v === 'gaveta') { st.gaveta = !gavetaAberta(); renderGaveta(); }
       else if (v === 'tema') { st.tema = st.tema === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', st.tema); try { localStorage.setItem('vira-tema', st.tema); } catch (e) { /* ok */ } render(); }
@@ -1952,7 +2126,7 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
     st: st, BASE: BASE, VIVO: VIVO, AB: AB, AO: AO, FILA: FILA, DEMO: DEMO, URLS: URLS, MODO: MODO, I: I,
     get FIN() { return FIN; }, get ELE() { return ELE; }, get COMP() { return COMP; },
     lerU: lerU, lerAb: lerAb, Fila: Fila, vivo: vivo, base: base, justa: justa, caminho: caminho, pai: pai, itens: itens, membros: membros,
-    agg: agg, munsDe: munsDe, garantirTodas: garantirTodas, get NACIONAL() { return NACIONAL; }, LITE: LITE, valQ: valQ, desDe: desDe, misturar: misturar,
+    agg: agg, munsDe: munsDe, garantirTodas: garantirTodas, get NACIONAL() { return NACIONAL; }, LITE: LITE, valQ: valQ, desDe: desDe, misturar: misturar, projetar: projetar, get HPROJ() { return HPROJ; },
     opcoesVer: opcoesVer, ir: ir, irPara: irPara, render: render, ciclo: ciclo, corDe: corDe, pct: pct, garantirUf: garantirUf, ele2: ele2,
     pronto: iniciar()
   };
