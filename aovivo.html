@@ -297,7 +297,7 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
   <span class="cab-logo"><img src="marca/logo.png" alt="Comitê Periferias com Lula" width="97" height="100"></span>
   <div class="cab-id"><p class="kicker">Apuração ao vivo · 2º turno 2026</p><h1>Presidente</h1><p id="cab-sub">Carregando…</p></div>
   <div class="cab-deco" aria-hidden="true"><i></i><svg class="estrela" style="color:#fff"><use href="#estrela"/></svg></div>
-  <div class="cab-acoes"><span id="estado" class="estado"></span><span style="display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><button class="versao-link nota-btn" data-acao="nota">Nota técnica</button><a id="versao-link" class="versao-link" href="lite.html">Versão Lite</a><button class="btn" data-acao="atualizar">Atualizar agora</button><button class="btn-icone" data-acao="tema" aria-label="Trocar tema claro/escuro">◐</button></span></div>
+  <div class="cab-acoes"><span id="estado" class="estado"></span><span style="display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><button class="versao-link nota-btn" data-acao="nota">Como funciona?</button><a id="versao-link" class="versao-link" href="lite.html">Versão Lite</a><button class="btn" data-acao="atualizar">Atualizar agora</button><button class="btn-icone" data-acao="tema" aria-label="Trocar tema claro/escuro">◐</button></span></div>
 </header>
 <div class="envolve">
 <div id="fonte" class="fonte">Carregando a base…</div>
@@ -314,7 +314,7 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
   <section class="cartao painel-lista" data-sec="lista"><div id="lista-ctl"></div><div id="lista"></div></section>
 </main>
 <footer class="rodape"><svg class="estrela" style="color:var(--marca)"><use href="#estrela"/></svg><span>Comitê Periferias com Lula · 2º turno ao vivo do TSE; 1º turno, 2022 e 2014 dos Dados Abertos do TSE e do IBGE</span><svg class="estrela" style="color:var(--marca)"><use href="#estrela"/></svg></footer>
-<div id="nota" class="nota-modal" hidden role="dialog" aria-modal="true" aria-labelledby="nota-tit"><div class="nota-caixa"><button class="nota-x" data-acao="nota" aria-label="Fechar a nota técnica">×</button><div id="nota-corpo"></div><div id="nota-vivo"></div></div></div>
+<div id="nota" class="nota-modal" hidden role="dialog" aria-modal="true" aria-labelledby="nota-tit"><div class="nota-caixa"><button class="nota-x" data-acao="nota" aria-label="Fechar o Como funciona?">×</button><div id="nota-corpo"></div><div id="nota-vivo"></div></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script id="app">
 (function () {
@@ -1460,7 +1460,7 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
     if (D) h.push('<p class="viro-intro">Quanto mudou o <b>desinteresse</b> (abstenções + brancos + nulos, em % dos eleitores aptos) do 1º para o 2º turno de 2026.' + (LITE ? '' : ' Só entram municípios 100% apurados (comparação justa).') + '</p>');
     else if (LITE) h.push('<p class="viro-intro">Votos de <b>' + esc(f.nome) + '</b> no 2º turno × 1º turno. Meta: <b>' + esc(metaRot(q)) + '</b>.</p>');
     else h.push('<p class="viro-intro">Quantos votos <b>' + esc(f.nome) + '</b> ganhou ou perdeu do 1º para o 2º turno de 2026, rumo à meta fixa: a votação de <b>' + esc(metaRot(q)) + '</b> no lugar inteiro. Só entram municípios 100% apurados (comparação justa).</p>');
-    h.push('<div class="ctl"><span class="rot">Medir:</span>' + segQuem(true) + '<button class="btn" data-acao="viromapa">Ver no mapa</button><button class="btn" data-acao="nota">Nota técnica</button></div>');
+    h.push('<div class="ctl"><span class="rot">Medir:</span>' + segQuem(true) + '<button class="btn" data-acao="viromapa">Ver no mapa</button><button class="btn" data-acao="nota">Como funciona?</button></div>');
     if (BASE.fonte !== 'base') { escrever('viro', h.join('') + '<p class="sem-mapa">O Virômetro precisa da base do projeto (1º turno e 2022 por município), que não abriu.</p>'); return; }
     if (n === 'zz') { escrever('viro', h.join('') + '<p class="sem-mapa">O exterior não tem municípios: o Virômetro vale do Brasil até cada município.</p>'); return; }
     var ms = munsDe(k), us = ms ? unidadesViro(k) : [];
@@ -1582,19 +1582,20 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
       ex = '<p><b>Exemplo (Brasil, Lula):</b> no 1º turno de 2026, ' + fmtN(v1) + ' votos; ' + (c ? esc(c.b.nome) + ' no ' + esc(c.rot) : 'a meta') + ': ' + fmtN(vm) + ' votos. A meta é ganhar <b>' + fmtS(vm - v1) + ' votos</b> sobre o 1º turno. Se, numa hora da noite, os municípios já totalizados somarem ' + fmtS(Math.round((vm - v1) / 2)) + ' votos para Lula, o Virômetro marca 50% do caminho.</p>';
     }
     var h = [];
-    h.push('<p class="rot">Nota técnica · Vira 2026</p><h2 id="nota-tit">Como o Virômetro é calculado</h2>');
+    h.push('<p class="rot">Como funciona? · Vira 2026</p><h2 id="nota-tit">Como o Virômetro é calculado</h2>');
     h.push('<p>O Virômetro mede, voto a voto, quanto cada candidato ganhou ou perdeu do 1º para o 2º turno de 2026, e quanto falta para chegar à votação que o mesmo lado teve no 2º turno de 2022. Todos os números vêm do Tribunal Superior Eleitoral (TSE).</p>');
-    h.push('<h4>1. De onde vêm os dados</h4><ul>' +
-      '<li><b>2º turno de 2026 (ao vivo):</b> lido direto dos arquivos oficiais de divulgação do TSE, em ' + linkTse('https://resultados.tse.jus.br') + ', os mesmos que alimentam o site e o aplicativo de resultados do TSE. Quem lê é o navegador de cada pessoa, sem nenhum servidor no meio: o painel não recebe, não guarda e não altera os números.</li>' +
-      '<li><b>1º turno de 2026 e 2º turnos de 2022 e 2014:</b> arquivos dos Dados Abertos do TSE, somados por município. Antes de publicar, a base é conferida com os totais oficiais do país; se um único número não bater, ela não é gerada. Exemplo conferido: no 1º turno de 2026, 56.104.503 votos para Flávio Bolsonaro e 53.879.538 para Lula, sobre 119.300.788 votos válidos.</li>' +
-      '<li><b>Mapas e regiões:</b> IBGE (estados, Grandes Regiões e municípios).</li></ul>');
-    h.push('<h4>2. A regra da comparação justa</h4><p>Um município só entra na conta quando o TSE informa que <b>100% das seções</b> dele foram apuradas. Assim, o 2º turno é sempre comparado com o 1º turno exatamente nos mesmos lugares. Durante a noite, as urnas de cada cidade chegam em horários diferentes; usar números parciais misturaria lugares e daria uma impressão errada.</p>');
-    h.push('<h4>3. O cálculo</h4>' +
+    h.push('<h4>1. O cálculo</h4>' +
+      '<p><b>Em resumo:</b> em cada município, o Virômetro compara os votos de cada candidato no 2º turno com os que ele teve no 1º turno. Assim aparece, cidade por cidade, quantos votos cada um <b>ganhou ou perdeu</b>, e a soma de todas as cidades mostra o saldo do lugar (estado, região ou Brasil).</p>' +
       '<div class="formula">Diferença = votos no 2º turno − votos no 1º turno (somados nos municípios 100% apurados)</div>' +
       '<div class="formula">Meta (fixa) = votos do mesmo lado no 2º turno de 2022 − votos no 1º turno de 2026, no lugar inteiro</div>' +
       '<div class="formula">Caminho percorrido = Diferença ÷ Meta</div>' +
       '<p>0% = o mesmo número de votos do 1º turno; 100% = alcançou a votação de 2022; número negativo = perdeu votos. A meta não muda durante a noite: ela é calculada com todos os municípios do lugar (Brasil, região, estado ou município), e a diferença vai se somando à medida que os municípios terminam a apuração.</p>' + ex +
       '<p><b>Lados comparados:</b> Lula ↔ Lula (2022) ↔ Dilma (2014); Flávio Bolsonaro ↔ Bolsonaro (2022) ↔ Aécio (2014).</p>');
+    h.push('<h4>2. A regra da comparação justa</h4><p>Um município só entra na conta quando o TSE informa que <b>100% das seções</b> dele foram apuradas. Assim, o 2º turno é sempre comparado com o 1º turno exatamente nos mesmos lugares. Durante a noite, as urnas de cada cidade chegam em horários diferentes; usar números parciais misturaria lugares e daria uma impressão errada.</p>');
+    h.push('<h4>3. De onde vêm os dados</h4><ul>' +
+      '<li><b>2º turno de 2026 (ao vivo):</b> lido direto dos arquivos oficiais de divulgação do TSE, em ' + linkTse('https://resultados.tse.jus.br') + ', os mesmos que alimentam o site e o aplicativo de resultados do TSE. Quem lê é o navegador de cada pessoa, sem nenhum servidor no meio: o painel não recebe, não guarda e não altera os números.</li>' +
+      '<li><b>1º turno de 2026 e 2º turnos de 2022 e 2014:</b> arquivos dos Dados Abertos do TSE, somados por município. Antes de publicar, a base é conferida com os totais oficiais do país; se um único número não bater, ela não é gerada. Exemplo conferido: no 1º turno de 2026, 56.104.503 votos para Flávio Bolsonaro e 53.879.538 para Lula, sobre 119.300.788 votos válidos.</li>' +
+      '<li><b>Mapas e regiões:</b> IBGE (estados, Grandes Regiões e municípios).</li></ul>');
     h.push('<h4>4. Contagens e desinteresse</h4><ul>' +
       '<li><b>Cresceu, ficou igual ou diminuiu:</b> "igual" quando a mudança é menor que 1% dos votos que o candidato teve ali no 1º turno.</li>' +
       '<li><b>Desinteresse</b> = (abstenções + votos brancos + votos nulos) ÷ eleitores aptos, no 1º e no 2º turno, também só nos municípios 100% apurados. A diferença é dada em pontos percentuais (p.p.) e separada em abstenções e brancos e nulos.</li>' +
