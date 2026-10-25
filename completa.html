@@ -130,6 +130,21 @@ body[data-aba="resumo"] .tela>[data-sec="resumo"],body[data-aba="mapa"] .tela>[d
 .des-l{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 12px;align-items:baseline;font-size:.86rem;padding:6px 0;border-top:1px solid var(--linha2)}
 .des-l b{font-variant-numeric:tabular-nums}
 .des-l .n{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--sub)}
+/* nota técnica */
+.nota-btn{background:none;border:0;padding:0;cursor:pointer;font:inherit;font-size:.78rem;font-weight:700}
+.nota-modal{position:fixed;top:0;left:0;right:0;bottom:0;z-index:3000;background:rgba(20,10,10,.5);display:flex;align-items:center;justify-content:center;padding:16px}
+.nota-caixa{position:relative;background:var(--card);color:var(--txt);border-radius:18px;max-width:780px;width:100%;max-height:92vh;max-height:92dvh;overflow:auto;padding:24px 26px;box-shadow:0 12px 40px rgba(0,0,0,.3);-webkit-overflow-scrolling:touch;font-size:.95rem}
+.nota-caixa h2{margin:0 40px 4px 0}
+.nota-caixa h4{margin:18px 0 6px;font-family:'Montserrat',sans-serif;font-size:.95rem}
+.nota-caixa p,.nota-caixa li{margin:0 0 8px;line-height:1.55}
+.nota-caixa ul{padding-left:20px;margin:0 0 8px}
+.nota-caixa a{color:var(--acento);word-break:break-all}
+.nota-x{position:absolute;top:12px;right:12px;width:44px;height:44px;border-radius:22px;border:1px solid var(--linha);background:var(--card);font-size:1.4rem;line-height:1}
+.formula{background:var(--neutro-bg);border-left:3px solid var(--marca);border-radius:10px;padding:10px 14px;margin:8px 0 12px;font-weight:700}
+.conexao{border:1px solid var(--linha);border-radius:14px;padding:14px 16px;margin-top:18px;background:var(--bg)}
+.conexao .ok{color:#2e7d6b;font-weight:800}
+.conexao .ruim{color:var(--ruim);font-weight:800}
+@media (max-width:760px){.nota-modal{padding:0;align-items:flex-end}.nota-caixa{border-radius:18px 18px 0 0;max-height:94dvh;padding:20px 16px calc(20px + env(safe-area-inset-bottom))}}
 .vbars{display:flex;flex-direction:column;gap:2px}
 .vbar{display:grid;grid-template-columns:minmax(0,9.5em) minmax(0,1fr) 9em;align-items:center;gap:10px;font-size:.84rem;min-height:36px}
 .vtr{position:relative;height:16px;background:var(--linha2);border-radius:4px}
@@ -282,7 +297,7 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
   <span class="cab-logo"><img src="marca/logo.png" alt="Comitê Periferias com Lula" width="97" height="100"></span>
   <div class="cab-id"><p class="kicker">Apuração ao vivo · 2º turno 2026</p><h1>Presidente</h1><p id="cab-sub">Carregando…</p></div>
   <div class="cab-deco" aria-hidden="true"><i></i><svg class="estrela" style="color:#fff"><use href="#estrela"/></svg></div>
-  <div class="cab-acoes"><span id="estado" class="estado"></span><span style="display:flex;gap:8px;align-items:center"><a id="versao-link" class="versao-link" href="lite.html">Versão Lite</a><button class="btn" data-acao="atualizar">Atualizar agora</button><button class="btn-icone" data-acao="tema" aria-label="Trocar tema claro/escuro">◐</button></span></div>
+  <div class="cab-acoes"><span id="estado" class="estado"></span><span style="display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><button class="versao-link nota-btn" data-acao="nota">Nota técnica</button><a id="versao-link" class="versao-link" href="lite.html">Versão Lite</a><button class="btn" data-acao="atualizar">Atualizar agora</button><button class="btn-icone" data-acao="tema" aria-label="Trocar tema claro/escuro">◐</button></span></div>
 </header>
 <div class="envolve">
 <div id="fonte" class="fonte">Carregando a base…</div>
@@ -299,6 +314,7 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
   <section class="cartao painel-lista" data-sec="lista"><div id="lista-ctl"></div><div id="lista"></div></section>
 </main>
 <footer class="rodape"><svg class="estrela" style="color:var(--marca)"><use href="#estrela"/></svg><span>Comitê Periferias com Lula · 2º turno ao vivo do TSE; 1º turno, 2022 e 2014 dos Dados Abertos do TSE e do IBGE</span><svg class="estrela" style="color:var(--marca)"><use href="#estrela"/></svg></footer>
+<div id="nota" class="nota-modal" hidden role="dialog" aria-modal="true" aria-labelledby="nota-tit"><div class="nota-caixa"><button class="nota-x" data-acao="nota" aria-label="Fechar a nota técnica">×</button><div id="nota-corpo"></div><div id="nota-vivo"></div></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script id="app">
 (function () {
@@ -928,6 +944,7 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
     if (BASE.fonte === 'base' && !TODAS && (precisaTodas(st.lugar, st.ver) || ((n === 'br' || n === 'reg') && (st.aba === 'viro' || st.mapa === 'viro')))) garantirTodas();
     renderCab(); renderMigalhas(); renderResumo(); renderMapa(); renderViro(); renderLista(); renderAbas();
     if (BASE.fonte) marcarHistorico();
+    renderNota();
   }
   function renderCab() {
     var sub = MODO === 'demo' ? 'Demonstração — 2º turno simulado' : MODO === 'ensaio' ? 'Ensaio com os arquivos reais do 1º turno' : 'Votação das 8h às 17h (horário de Brasília); resultados a partir das 17h';
@@ -936,6 +953,12 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
     var est = { carregando: 'Carregando…', antes: 'A apuração ainda não começou', apurando: 'Apurando', fim: 'Apuração concluída', falha: 'Sem resposta do TSE agora' }[AO.estado] || '';
     var h = AO.ultima ? ' · atualizado às ' + new Date(AO.ultima).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '';
     if (FILA.pausaAte > RELOGIO.agora()) est = 'Pausa (muitos "não encontrado")';
+    // a hora em que o próprio TSE gerou os dados (prova de que vêm de lá e de que estão frescos)
+    var hg = AB.br && AB.br.quando ? AB.br.quando.trim().split(' ')[1] : '';
+    if (hg && MODO !== 'demo') h = ' · dados do TSE das ' + hg;
+    // vigia: apurando e sem resposta do TSE há mais de 3 minutos
+    var parado = AO.estado === 'apurando' && AO.ultima ? Math.floor((RELOGIO.agora() - AO.ultima) / 60000) : 0;
+    if (parado >= 3) est = 'Sem resposta do TSE há ' + parado + ' min (tentando de novo)';
     $('estado').innerHTML = '<span class="bolinha' + (AO.estado === 'apurando' ? ' viva' : '') + '"></span>' + esc(est) + '<span class="hora">' + esc(h) + '</span>';
     var f;
     if (BASE.fonte === 'base') f = '<b>Fonte:</b> 1º turno de 2026 e 2º turnos de 2022 e 2014 vêm da <b>base do projeto</b> (arquivos publicados junto com este painel, conferidos com os números oficiais). ';
@@ -1437,7 +1460,7 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
     if (D) h.push('<p class="viro-intro">Quanto mudou o <b>desinteresse</b> (abstenções + brancos + nulos, em % dos eleitores aptos) do 1º para o 2º turno de 2026.' + (LITE ? '' : ' Só entram municípios 100% apurados (comparação justa).') + '</p>');
     else if (LITE) h.push('<p class="viro-intro">Votos de <b>' + esc(f.nome) + '</b> no 2º turno × 1º turno. Meta: <b>' + esc(metaRot(q)) + '</b>.</p>');
     else h.push('<p class="viro-intro">Quantos votos <b>' + esc(f.nome) + '</b> ganhou ou perdeu do 1º para o 2º turno de 2026, rumo à meta fixa: a votação de <b>' + esc(metaRot(q)) + '</b> no lugar inteiro. Só entram municípios 100% apurados (comparação justa).</p>');
-    h.push('<div class="ctl"><span class="rot">Medir:</span>' + segQuem(true) + '<button class="btn" data-acao="viromapa">Ver no mapa</button></div>');
+    h.push('<div class="ctl"><span class="rot">Medir:</span>' + segQuem(true) + '<button class="btn" data-acao="viromapa">Ver no mapa</button><button class="btn" data-acao="nota">Nota técnica</button></div>');
     if (BASE.fonte !== 'base') { escrever('viro', h.join('') + '<p class="sem-mapa">O Virômetro precisa da base do projeto (1º turno e 2022 por município), que não abriu.</p>'); return; }
     if (n === 'zz') { escrever('viro', h.join('') + '<p class="sem-mapa">O exterior não tem municípios: o Virômetro vale do Brasil até cada município.</p>'); return; }
     var ms = munsDe(k), us = ms ? unidadesViro(k) : [];
@@ -1546,6 +1569,86 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
     h.push('</div>');
     escrever('viro', h.join(''));
   }
+  // ======================================================================
+  // Nota técnica: como o Virômetro é calculado, de onde vêm os dados e a conexão com o TSE (com teste na hora)
+  // ======================================================================
+  var NOTA = false, TESTE = null;
+  function linkTse(url, txt) { return '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(txt || url) + '</a>'; }
+  function htmlNota() {
+    var mid = metaId(), c = COMP.filter(function (x) { return x.id === mid; })[0];
+    var b1 = BASE.v.t1 && BASE.v.t1.br, bm = mid && BASE.v[mid] && BASE.v[mid].br, ex = '';
+    if (b1 && bm) {
+      var v1 = valQ(b1, 'b'), vm = valQ(bm, 'b');
+      ex = '<p><b>Exemplo (Brasil, Lula):</b> no 1º turno de 2026, ' + fmtN(v1) + ' votos; ' + (c ? esc(c.b.nome) + ' no ' + esc(c.rot) : 'a meta') + ': ' + fmtN(vm) + ' votos. A meta é ganhar <b>' + fmtS(vm - v1) + ' votos</b> sobre o 1º turno. Se, numa hora da noite, os municípios já totalizados somarem ' + fmtS(Math.round((vm - v1) / 2)) + ' votos para Lula, o Virômetro marca 50% do caminho.</p>';
+    }
+    var h = [];
+    h.push('<p class="rot">Nota técnica · Vira 2026</p><h2 id="nota-tit">Como o Virômetro é calculado</h2>');
+    h.push('<p>O Virômetro mede, voto a voto, quanto cada candidato ganhou ou perdeu do 1º para o 2º turno de 2026, e quanto falta para chegar à votação que o mesmo lado teve no 2º turno de 2022. Todos os números vêm do Tribunal Superior Eleitoral (TSE).</p>');
+    h.push('<h4>1. De onde vêm os dados</h4><ul>' +
+      '<li><b>2º turno de 2026 (ao vivo):</b> lido direto dos arquivos oficiais de divulgação do TSE, em ' + linkTse('https://resultados.tse.jus.br') + ', os mesmos que alimentam o site e o aplicativo de resultados do TSE. Quem lê é o navegador de cada pessoa, sem nenhum servidor no meio: o painel não recebe, não guarda e não altera os números.</li>' +
+      '<li><b>1º turno de 2026 e 2º turnos de 2022 e 2014:</b> arquivos dos Dados Abertos do TSE, somados por município. Antes de publicar, a base é conferida com os totais oficiais do país; se um único número não bater, ela não é gerada. Exemplo conferido: no 1º turno de 2026, 56.104.503 votos para Flávio Bolsonaro e 53.879.538 para Lula, sobre 119.300.788 votos válidos.</li>' +
+      '<li><b>Mapas e regiões:</b> IBGE (estados, Grandes Regiões e municípios).</li></ul>');
+    h.push('<h4>2. A regra da comparação justa</h4><p>Um município só entra na conta quando o TSE informa que <b>100% das seções</b> dele foram apuradas. Assim, o 2º turno é sempre comparado com o 1º turno exatamente nos mesmos lugares. Durante a noite, as urnas de cada cidade chegam em horários diferentes; usar números parciais misturaria lugares e daria uma impressão errada.</p>');
+    h.push('<h4>3. O cálculo</h4>' +
+      '<div class="formula">Diferença = votos no 2º turno − votos no 1º turno (somados nos municípios 100% apurados)</div>' +
+      '<div class="formula">Meta (fixa) = votos do mesmo lado no 2º turno de 2022 − votos no 1º turno de 2026, no lugar inteiro</div>' +
+      '<div class="formula">Caminho percorrido = Diferença ÷ Meta</div>' +
+      '<p>0% = o mesmo número de votos do 1º turno; 100% = alcançou a votação de 2022; número negativo = perdeu votos. A meta não muda durante a noite: ela é calculada com todos os municípios do lugar (Brasil, região, estado ou município), e a diferença vai se somando à medida que os municípios terminam a apuração.</p>' + ex +
+      '<p><b>Lados comparados:</b> Lula ↔ Lula (2022) ↔ Dilma (2014); Flávio Bolsonaro ↔ Bolsonaro (2022) ↔ Aécio (2014).</p>');
+    h.push('<h4>4. Contagens e desinteresse</h4><ul>' +
+      '<li><b>Cresceu, ficou igual ou diminuiu:</b> "igual" quando a mudança é menor que 1% dos votos que o candidato teve ali no 1º turno.</li>' +
+      '<li><b>Desinteresse</b> = (abstenções + votos brancos + votos nulos) ÷ eleitores aptos, no 1º e no 2º turno, também só nos municípios 100% apurados. A diferença é dada em pontos percentuais (p.p.) e separada em abstenções e brancos e nulos.</li>' +
+      '<li><b>Percentuais dos candidatos</b> são sobre os votos válidos (sem brancos e nulos), como faz o TSE.</li></ul>');
+    h.push('<h4>5. Limites</h4><ul>' +
+      '<li>Os votos do exterior não entram no Virômetro (não pertencem a um município); entram no placar do Brasil.</li>' +
+      '<li>O resultado oficial é sempre o do TSE. Se o TSE corrigir um número, o painel mostra a correção na leitura seguinte.</li>' +
+      '<li>As eleições de 2022 e 2014 usam a divisão atual dos municípios do IBGE.</li></ul>');
+    h.push('<h4>6. Atualização e proteção</h4><p>O painel consulta o TSE a cada minuto (o próprio TSE renova os arquivos a cada 50 segundos, mais ou menos). Para não sobrecarregar o TSE, faz no máximo 9 consultas por segundo e só baixa de novo o que mudou. Os endereços usados são os oficiais, publicados pelo TSE; nada é adivinhado.</p>');
+    return h.join('');
+  }
+  function htmlConexao() {
+    var h = ['<div class="conexao"><h4 style="margin-top:0">Conexão com o TSE agora</h4>'];
+    var abUrl = URLS.ab(ele2(), 'br'), uUrl = URLS.u(ele2(), 'br');
+    if (MODO === 'demo') h.push('<p>Este é o <b>modo demonstração</b>: o 2º turno é simulado e nada é pedido ao TSE. Para o painel de verdade, abra o endereço sem <code>?demo=1</code>.</p>');
+    else {
+      var b = AB.br && AB.br.lug.br;
+      h.push('<p>Arquivo de andamento lido: ' + linkTse(abUrl, abUrl.replace(TSE_RAIZ, 'resultados.tse.jus.br/oficial')) + '<br>Resultado do Brasil: ' + linkTse(uUrl, uUrl.replace(TSE_RAIZ, 'resultados.tse.jus.br/oficial')) + '</p>');
+      h.push('<p>' + (AB.br ? '<span class="ok">✔ Recebendo do TSE.</span> Arquivo gerado pelo TSE em <b>' + esc(AB.br.quando.trim()) + '</b>' + (b ? '; seções apuradas no Brasil: <b>' + (b.ts ? NP2.format(100 * b.st / b.ts) : '0') + '%</b>' : '') + '.' : AO.estado === 'antes' ? 'O TSE ainda não publicou o arquivo do 2º turno (normal antes do início da apuração). O painel tenta de novo a cada 2 minutos.' : 'Aguardando a primeira resposta do TSE.') +
+        (AO.ultima ? ' Última leitura neste aparelho: ' + new Date(AO.ultima).toLocaleTimeString('pt-BR') + '.' : '') + '</p>');
+      h.push('<p class="rot">Consultas feitas: ' + fmtN(FILA.total) + ' · "não encontrado": ' + fmtN(FILA.n404) + (AO.formato.length ? ' · arquivos com formato inesperado: ' + AO.formato.length : '') + '</p>');
+    }
+    if (TESTE && TESTE.andando) h.push('<p>Testando…</p>');
+    else if (TESTE && TESTE.demo) h.push('<p>No modo demonstração o teste não consulta o TSE.</p>');
+    else if (TESTE) {
+      var t1 = TESTE.t1, t2 = TESTE.t2;
+      h.push('<p>' + (t1.ok ? '<span class="ok">✔ Este aparelho lê o TSE diretamente</span> (' + t1.ms + ' ms). Arquivo oficial do 1º turno: gerado em ' + esc(t1.quando || '') + ', ' + (t1.ts ? NP2.format(100 * t1.st / t1.ts) : '0') + '% das seções.' : '<span class="ruim">✖ Não consegui falar com o TSE deste aparelho</span> (sem internet ou acesso bloqueado). O painel continua tentando a cada minuto.') + '</p>');
+      h.push('<p>' + (t2.ok ? '<span class="ok">✔ Arquivo do 2º turno publicado pelo TSE</span>: gerado em ' + esc(t2.quando || '') + ', ' + (t2.ts ? NP2.format(100 * t2.st / t2.ts) : '0') + '% das seções apuradas.' : t1.ok ? 'O TSE ainda não publicou o arquivo do 2º turno (normal antes do início da apuração).' : '') + '</p>');
+    }
+    h.push('<p><button class="btn" data-acao="testar-tse">Testar a conexão com o TSE agora</button></p>');
+    h.push('<p class="rot">Para conferir com a fonte oficial, compare com o site de resultados do TSE: ' + linkTse('https://resultados.tse.jus.br/oficial/app/index.html', 'resultados.tse.jus.br') + '.</p></div>');
+    return h.join('');
+  }
+  function renderNota() {
+    var el = $('nota'); if (!el) return;
+    el.hidden = !NOTA;
+    if (!NOTA) return;
+    if (!$('nota-corpo').innerHTML) $('nota-corpo').innerHTML = htmlNota();
+    trocar('nota-vivo', htmlConexao());
+  }
+  // teste na hora: o navegador desta pessoa pede ao TSE o andamento do 1º turno (sempre existe) e o do 2º turno
+  function testarTse() {
+    if (MODO === 'demo') { TESTE = { demo: true }; renderNota(); return Promise.resolve(); }
+    TESTE = { andando: true }; renderNota();
+    var r = {};
+    return Promise.all([['t1', URLS.ab(ELE.t1, 'br')], ['t2', URLS.ab(ELE.t2, 'br')]].map(function (u) {
+      var ini = RELOGIO.agora();
+      return FILA.pedir(u[1], { esperado: true }).then(function (x) {
+        var o = { ok: !!x.ok, status: x.status, ms: Math.max(1, RELOGIO.agora() - ini) };
+        if (x.ok) try { var ab = lerAb(x.json, u[1]), b = ab.lug.br; o.quando = ab.quando.trim(); o.st = b ? b.st : 0; o.ts = b ? b.ts : 0; } catch (e) { o.ok = false; }
+        r[u[0]] = o;
+      });
+    })).then(function () { TESTE = r; renderNota(); });
+  }
   function celular() { return !!(window.matchMedia && window.matchMedia('(max-width: 760px)').matches); }
   // no computador, "Resumo e mapa" ficam juntos (não há aba Mapa separada)
   // (na Lite o Mapa é uma aba própria também no computador, com o mapa na tela toda)
@@ -1616,6 +1719,8 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
         QUADRO = ''; render();
       }
       else if (v === 'vtodos') { st.vtodos = true; render(); }
+      else if (v === 'nota') { NOTA = !NOTA; renderNota(); }
+      else if (v === 'testar-tse') testarTse();
       else if (v === 'viroaba') { st.aba = 'viro'; render(); }
       else if (v === 'vtab') { st.vtab = !st.vtab; render(); }
       else if (v === 'gaveta') { st.gaveta = !gavetaAberta(); renderGaveta(); }
@@ -1633,6 +1738,9 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
     else if (s === 'ele') { st.ele = t.value; render(); }
     else if (s === 'ref') { st.ref = t.value; render(); }
   });
+  // Esc fecha a nota técnica; clicar no fundo escuro também
+  document.addEventListener('keydown', function (ev) { if (NOTA && ev.key === 'Escape') { NOTA = false; renderNota(); } });
+  document.addEventListener('click', function (ev) { if (NOTA && ev.target && ev.target.id === 'nota') { NOTA = false; renderNota(); } });
   // saiu de uma lista sem escolher: a parte que esperava volta a ser desenhada
   document.addEventListener('focusout', function (ev) { if (ev.target && ev.target.tagName === 'SELECT') pedirRender(); });
   // tela mudou de tamanho (girar o celular, janela): o mapa se ajusta e a aba certa aparece
@@ -1665,6 +1773,7 @@ html[data-versao="lite"] .gaveta .leg{margin-top:4px}
       // ?aba=viro|mapa|lista e ?ver=mun (Brasil por município etc.) abrem direto
       var a = Q.get('aba'), v = Q.get('ver'), qm = Q.get('quem');
       if (['a', 'b', 'd'].indexOf(qm) >= 0) st.quem = qm;   // ?quem=d abre o Virômetro no desinteresse
+      if (Q.get('nota') === '1') { NOTA = true; if (!OPC.semCiclo && MODO !== 'demo') testarTse(); }   // ?nota=1 abre a nota técnica (e testa a conexão)
       if ((LITE ? ['mapa', 'viro'] : ['resumo', 'mapa', 'viro', 'lista']).indexOf(a) >= 0) st.aba = a;
       if (v && opcoesVer(st.lugar).indexOf(v) >= 0) st.ver = v;
       if (a || v) render();
