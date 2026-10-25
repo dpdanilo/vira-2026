@@ -3,118 +3,159 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Apuração ao vivo · 2º turno 2026</title>
+<title>Vira 2026 · Apuração ao vivo do 2º turno</title>
+<meta name="description" content="Apuração ao vivo do 2º turno de 2026 para Presidente, comparada com o 1º turno, 2022 e 2014 — Comitê Periferias com Lula">
+<meta name="theme-color" content="#d21212">
+<link rel="icon" type="image/png" href="marca/icone.png">
+<link rel="apple-touch-icon" href="marca/icone.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Public+Sans:wght@400;600;700;800&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
-:root{--bg:#f4f1ea;--card:#fffdf8;--txt:#2a3441;--sub:#5b6573;--linha:#e2dccf;--linha2:#efe9dc;--acento:#3b6f8f;--acento-tx:#fffdf8;--chip:#e8e2d4;--neutro-bg:#ece8df;--realce:#3d4752;--cor-a:#3b6f8f;--cor-b:#d9822b;--ruim:#b0412e;color-scheme:light}
-:root[data-theme="dark"]{--bg:#1c2229;--card:#252c35;--txt:#ebe6dc;--sub:#a9b2bd;--linha:#38424e;--linha2:#2f3843;--acento:#86b5d3;--acento-tx:#14202a;--chip:#323b46;--neutro-bg:#323b46;--realce:#e3e7ec;--cor-a:#6f9ec0;--cor-b:#e3a35f;--ruim:#f0937f;color-scheme:dark}
+/* Identidade do Comitê Periferias com Lula: vermelho da logo (#d21212) só no topo e nos detalhes; o resto claro e quente */
+:root{--marca:#d21212;--marca-esc:#a80e0e;--marca-claro:#fdecea;--bg:#faf6f2;--card:#ffffff;--txt:#2b2525;--sub:#6e6461;--linha:#efe5dd;--linha2:#f6f0ea;--acento:#c01010;--chip:#f4ede7;--neutro-bg:#fbf3ef;--realce:#3d4752;--cor-a:#2f5d8a;--cor-b:#d21212;--ruim:#b0412e;--cab-tx:#ffffff;color-scheme:light}
+:root[data-theme="dark"]{--marca:#c01111;--marca-esc:#8f0c0c;--marca-claro:#3a2222;--bg:#1b1919;--card:#252121;--txt:#f2ece6;--sub:#b5aba5;--linha:#3a3331;--linha2:#2e2928;--acento:#ff8a80;--chip:#302a29;--neutro-bg:#2c2524;--realce:#e3e7ec;--cor-a:#7fa6cf;--cor-b:#ff6b5f;--ruim:#f0937f;color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html,body{margin:0;background:var(--bg);color:var(--txt);font-family:'Public Sans',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:16px;line-height:1.4}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:'Public Sans',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:16px;line-height:1.45}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:3px solid var(--acento);outline-offset:2px}
-.cab{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:10px 24px;background:var(--card);border-bottom:1px solid var(--linha)}
-.cab-id{min-width:0;flex:1 1 300px}
-.cab-id h1{margin:0;font-size:1.1rem;font-weight:800}
-.cab-id p{margin:2px 0 0;font-size:.8rem;color:var(--sub)}
+.tit{font-family:'Montserrat','Public Sans',sans-serif}
+/* topo vermelho com a logo, a linha fina e a estrela do banner */
+.cab{display:flex;align-items:center;gap:12px 20px;padding:10px 24px;background:var(--marca);color:var(--cab-tx);flex-wrap:wrap}
+.cab-logo{flex:none;display:block;line-height:0}
+.cab-logo img{height:84px;width:auto;display:block}
+.cab-id{min-width:0;flex:0 1 auto}
+.cab-id .kicker{margin:0;font-family:'Montserrat',sans-serif;font-weight:800;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;opacity:.9}
+.cab-id h1{margin:2px 0 0;font-family:'Montserrat',sans-serif;font-weight:900;font-size:1.6rem;line-height:1.1;letter-spacing:-.01em}
+.cab-id p{margin:4px 0 0;font-size:.8rem;opacity:.88}
+.cab-deco{flex:1 1 60px;display:flex;align-items:center;gap:14px;min-width:40px}
+.cab-deco i{flex:1;height:2px;background:rgba(255,255,255,.85);border-radius:1px}
+.estrela{width:30px;height:30px;flex:none;fill:#fff}
 .cab-acoes{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.estado{font-size:.82rem;color:var(--sub);display:flex;align-items:center;gap:6px}
-.bolinha{width:10px;height:10px;border-radius:5px;background:var(--sub);display:inline-block}
-.bolinha.viva{background:#2f7d4f;animation:pisca 2s infinite}
+.estado{font-size:.82rem;display:flex;align-items:center;gap:6px;color:var(--cab-tx);background:rgba(0,0,0,.14);padding:6px 12px;border-radius:999px}
+.bolinha{width:9px;height:9px;border-radius:5px;background:rgba(255,255,255,.7);display:inline-block}
+.bolinha.viva{background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.3);animation:pisca 2s infinite}
 @keyframes pisca{50%{opacity:.35}}
-.btn{min-height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--linha);background:var(--card)}
-.btn-icone{width:44px;height:44px;border:1px solid var(--linha);border-radius:22px;background:var(--card)}
-.fonte{margin:12px 24px 0;padding:10px 14px;border-radius:12px;background:var(--neutro-bg);font-size:.85rem}
-.aviso{margin:8px 24px 0;padding:10px 14px;border-radius:12px;border:1px solid var(--ruim);color:var(--txt);background:var(--card);font-size:.85rem}
-.migalhas{display:flex;flex-wrap:wrap;align-items:center;gap:2px 4px;margin:12px 24px 0;font-size:.9rem}
-.migalhas button{border:0;background:none;color:var(--acento);font-weight:600;min-height:44px;padding:0 4px;text-decoration:underline}
-.migalhas .aqui{font-weight:800;padding:0 4px}
+.btn{min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--linha);background:var(--card);font-weight:600}
+.cab .btn{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.85)}
+.cab .btn:hover{background:rgba(255,255,255,.12)}
+.btn-icone{width:44px;height:44px;border-radius:22px;border:1.5px solid rgba(255,255,255,.85);background:transparent;color:#fff}
+.fonte{max-width:1400px;margin:14px auto 0;padding:10px 14px;border-radius:12px;background:var(--neutro-bg);border-left:3px solid var(--marca);font-size:.84rem;color:var(--sub)}
+.fonte b{color:var(--txt)}
+.envolve{padding:0 24px}
+.aviso{max-width:1400px;margin:8px auto 0;padding:10px 14px;border-radius:12px;border:1px solid var(--ruim);color:var(--txt);background:var(--card);font-size:.85rem}
+.migalhas{max-width:1400px;display:flex;flex-wrap:wrap;align-items:center;gap:2px 4px;margin:10px auto 0;font-size:.9rem}
+.migalhas button{border:0;background:none;color:var(--acento);font-weight:600;min-height:44px;padding:0 4px;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+.migalhas .aqui{font-weight:800;padding:0 4px;font-family:'Montserrat',sans-serif}
 .migalhas .sep{color:var(--sub)}
-.migalhas .niv{font-size:.7rem;color:var(--sub);text-transform:uppercase;letter-spacing:.03em}
-.tela{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:16px;padding:12px 24px 32px;max-width:1400px;margin:0 auto}
-.cartao{background:var(--card);border:1px solid var(--linha);border-radius:16px;padding:16px;min-width:0}
+.migalhas .niv{font-size:.68rem;color:var(--sub);text-transform:uppercase;letter-spacing:.05em}
+.tela{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:18px;padding:12px 24px 32px;max-width:1448px;margin:0 auto}
+.cartao{background:var(--card);border:1px solid var(--linha);border-radius:18px;padding:18px;min-width:0;box-shadow:0 1px 2px rgba(60,20,20,.04)}
 .painel-lista{grid-column:1/-1}
-h2{margin:0;font-size:1.25rem;font-weight:800}
-h3{margin:14px 0 6px;font-size:.95rem}
+h2{margin:0;font-family:'Montserrat',sans-serif;font-size:1.45rem;font-weight:800;letter-spacing:-.01em}
+h3{margin:18px 0 8px;font-family:'Montserrat',sans-serif;font-size:.92rem;font-weight:800;display:flex;align-items:center;gap:6px}
+h3::before{content:"";width:12px;height:12px;flex:none;background:var(--marca);-webkit-mask:var(--estrela) center/contain no-repeat;mask:var(--estrela) center/contain no-repeat}
+:root{--estrela:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z' stroke='black' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E")}
 .rot{font-size:.8rem;color:var(--sub);margin:2px 0 0}
-.barra{height:10px;border-radius:5px;background:var(--chip);overflow:hidden;margin:6px 0 2px}
-.barra i{display:block;height:100%;background:var(--acento)}
-.fins{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-top:12px}
-.fin{border-radius:12px;padding:10px 12px;background:var(--bg);border-top:4px solid var(--c)}
-.fin .nm{font-weight:700;font-size:.92rem}
-.fin .pc{font-size:1.7rem;font-weight:800;line-height:1.1;margin:4px 0 0;font-variant-numeric:tabular-nums}
-.fin .vt{font-size:.78rem;color:var(--sub)}
+.barra{height:8px;border-radius:4px;background:var(--chip);overflow:hidden;margin:8px 0 3px}
+.barra i{display:block;height:100%;background:var(--marca);border-radius:4px}
+.fins{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-top:14px}
+.fin{border-radius:14px;padding:12px 14px;background:var(--bg);border-top:4px solid var(--c)}
+.fin .nm{font-weight:700;font-size:.9rem}
+.fin .pc{font-family:'Montserrat',sans-serif;font-size:1.9rem;font-weight:800;line-height:1.1;margin:4px 0 2px;font-variant-numeric:tabular-nums;color:var(--c)}
+.fin .vt{font-size:.76rem;color:var(--sub)}
 .regua{margin-top:4px}
 .regua svg{width:100%;height:auto;display:block}
 .regua text{fill:var(--sub);font-size:11px;font-family:inherit}
-.justa{margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--neutro-bg);font-size:.85rem}
+.justa{margin-top:14px;padding:12px 14px;border-radius:14px;background:var(--neutro-bg);font-size:.85rem}
 .justa p{margin:0 0 6px}
 .tab{width:100%;border-collapse:collapse;font-size:.86rem}
-.tab th{font-size:.74rem;color:var(--sub);font-weight:600;text-align:left;border-bottom:1px solid var(--linha);padding:6px 5px}
-.tab td{border-bottom:1px solid var(--linha2);padding:6px 5px;vertical-align:middle}
+.tab th{font-size:.72rem;color:var(--sub);font-weight:600;text-align:left;border-bottom:1px solid var(--linha);padding:6px 5px}
+.tab td{border-bottom:1px solid var(--linha2);padding:7px 5px;vertical-align:middle}
 .tab .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-.tab th button{border:0;background:none;color:var(--sub);font-weight:600;font-size:.74rem;padding:6px 0;min-height:32px;text-align:inherit}
-.tab th button[aria-sort]{color:var(--txt);font-weight:800}
-.tab td button{border:0;background:none;color:var(--acento);font-weight:600;padding:6px 0;min-height:36px;text-align:left;text-decoration:underline}
-.tab tr.sel td{background:var(--linha2)}
+.tab th button{border:0;background:none;color:var(--sub);font-weight:600;font-size:.72rem;padding:6px 0;min-height:32px;text-align:inherit}
+.tab th button[aria-sort]{color:var(--acento);font-weight:800}
+.tab td button{border:0;background:none;color:var(--txt);font-weight:600;padding:6px 0;min-height:36px;text-align:left;text-decoration:underline;text-decoration-color:var(--marca);text-underline-offset:3px;text-decoration-thickness:1.5px}
+.tab tbody tr:hover td{background:var(--linha2)}
+.tab tr.sel td{background:var(--marca-claro)}
 .tab-rola{max-height:560px;overflow:auto}
 .tab-x{overflow-x:auto;max-width:100%}
 .tab small{display:block;color:var(--sub);font-size:.72rem}
 .tab .eleicao{white-space:nowrap}
-.seg{display:inline-flex;flex-wrap:wrap;gap:2px;background:var(--chip);border-radius:12px;padding:4px}
-.seg button{min-height:40px;padding:0 12px;border:0;border-radius:9px;background:transparent;color:var(--sub);font-size:.86rem}
-.seg button[aria-pressed="true"]{background:var(--card);color:var(--txt);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.15)}
-.ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.seg{display:inline-flex;flex-wrap:wrap;gap:2px;background:var(--chip);border-radius:999px;padding:4px}
+.seg button{min-height:40px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:var(--sub);font-size:.85rem}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--acento);font-weight:800;box-shadow:0 1px 3px rgba(60,20,20,.14)}
+.ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
 .ctl .rot{margin:0}
-.busca{min-height:44px;border-radius:10px;border:1px solid var(--linha);background:var(--card);padding:0 10px;font-size:16px;min-width:0;flex:1 1 180px;max-width:320px}
-.mapa{height:520px;border-radius:12px;background:var(--bg)}
+.busca{min-height:44px;border-radius:999px;border:1px solid var(--linha);background:var(--card);padding:0 16px;font-size:16px;min-width:0;flex:1 1 180px;max-width:320px}
+.mapa{height:520px;border-radius:14px;background:var(--bg)}
+@media (min-width:761px){.mapa{height:max(520px,calc(100vh - 330px))}}
 .leaflet-container{background:var(--bg);font-family:inherit}
-.leg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.78rem;color:var(--sub);margin-top:8px}
+.leaflet-tooltip{border-radius:10px;border:0;box-shadow:0 4px 14px rgba(40,10,10,.18);font-size:.82rem}
+.leg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.76rem;color:var(--sub);margin-top:10px}
 .leg span{display:inline-flex;align-items:center;gap:5px}
-.leg i{width:14px;height:14px;border-radius:3px;display:inline-block}
-.nota{font-size:.78rem;color:var(--sub);margin:6px 0 0}
+.leg i{width:14px;height:14px;border-radius:4px;display:inline-block}
+.nota{font-size:.76rem;color:var(--sub);margin:6px 0 0}
 .sem-mapa{padding:24px;text-align:center;color:var(--sub);border:1px dashed var(--linha);border-radius:12px}
 .abas-cel{display:none}
-.nav{display:flex;flex-direction:column;gap:4px;margin:10px 0 4px}
-.nav-sel{min-height:44px;border-radius:10px;border:1px solid var(--linha);background:var(--card);color:var(--txt);padding:0 10px;font-size:16px;max-width:100%}
+.nav{display:flex;flex-direction:column;gap:4px;margin:12px 0 4px}
+.nav-sel{min-height:44px;border-radius:12px;border:1px solid var(--linha);background:var(--card);color:var(--txt);padding:0 12px;font-size:16px;max-width:100%}
 .ponto{display:inline-block;width:10px;height:10px;border-radius:5px;margin-right:5px}
+.rodape{display:flex;align-items:center;justify-content:center;gap:10px;padding:18px 24px 28px;color:var(--sub);font-size:.78rem;text-align:center}
+.rodape .estrela{width:16px;height:16px;fill:var(--marca)}
+@media (max-width:980px){.cab-deco{display:none}}
 @media (max-width:760px){
-  .cab{padding:8px 12px}
-  .cab-id h1{font-size:1rem}
-  .fonte,.aviso,.migalhas{margin-left:12px;margin-right:12px}
+  .cab{padding:8px 12px;gap:6px 10px;flex-wrap:nowrap}
+  .cab-logo img{height:56px}
+  .cab-id h1{font-size:1.15rem}
+  .cab-id .kicker{font-size:.66rem}
+  #cab-sub{display:none}
+  .cab-acoes{flex-direction:column;align-items:flex-end;gap:4px;margin-left:auto}
+  .cab .btn{min-height:36px;padding:0 12px;font-size:.8rem}
+  .btn-icone{display:none}
+  .estado{font-size:.7rem;padding:3px 9px}
+  .estado .hora{display:none}
+  .cab .btn{white-space:nowrap}
+  .envolve{padding:0 12px}
   .tela{display:block;padding:8px 12px 84px}
   .tela>section{display:none}
   body[data-aba="resumo"] .tela>[data-sec="resumo"],body[data-aba="mapa"] .tela>[data-sec="mapa"],body[data-aba="lista"] .tela>[data-sec="lista"]{display:block}
   .mapa{height:calc(100vh - 330px);min-height:280px}
   .abas-cel{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:1000;background:var(--card);border-top:1px solid var(--linha);padding:4px 4px calc(4px + env(safe-area-inset-bottom))}
-  .abas-cel button{flex:1;min-height:52px;border:0;background:none;color:var(--sub);font-size:.85rem;border-radius:10px}
-  .abas-cel button[aria-current="page"]{color:var(--acento);font-weight:800;background:var(--bg)}
+  .abas-cel button{flex:1;min-height:52px;border:0;background:none;color:var(--sub);font-size:.85rem;border-radius:12px;position:relative}
+  .abas-cel button[aria-current="page"]{color:var(--acento);font-weight:800}
+  .abas-cel button[aria-current="page"]::before{content:"";position:absolute;top:0;left:30%;right:30%;height:3px;border-radius:0 0 3px 3px;background:var(--marca)}
   .tab-rola{max-height:none}
   html,body{overflow-x:hidden}
-  .fin .pc{font-size:1.4rem}
+  .fin .pc{font-size:1.5rem}
+  .rodape{padding-bottom:96px}
 }
 </style>
 </head>
 <body data-aba="resumo">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="estrela" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol></svg>
 <header class="cab">
-  <div class="cab-id"><h1>Apuração ao vivo · Presidente · 2º turno de 2026</h1><p id="cab-sub">Carregando…</p></div>
-  <div class="cab-acoes"><span id="estado" class="estado"></span><button class="btn" data-acao="atualizar">Atualizar agora</button><button class="btn-icone" data-acao="tema" aria-label="Trocar tema claro/escuro">◐</button></div>
+  <span class="cab-logo"><img src="marca/logo.png" alt="Comitê Periferias com Lula" width="97" height="100"></span>
+  <div class="cab-id"><p class="kicker">Apuração ao vivo · 2º turno 2026</p><h1>Presidente</h1><p id="cab-sub">Carregando…</p></div>
+  <div class="cab-deco" aria-hidden="true"><i></i><svg class="estrela" style="color:#fff"><use href="#estrela"/></svg></div>
+  <div class="cab-acoes"><span id="estado" class="estado"></span><span style="display:flex;gap:8px"><button class="btn" data-acao="atualizar">Atualizar agora</button><button class="btn-icone" data-acao="tema" aria-label="Trocar tema claro/escuro">◐</button></span></div>
 </header>
+<div class="envolve">
 <div id="fonte" class="fonte">Carregando a base…</div>
 <div id="aviso" class="aviso" hidden></div>
 <nav id="migalhas" class="migalhas" aria-label="Caminho"></nav>
+</div>
 <main class="tela">
   <section class="cartao" id="resumo" data-sec="resumo"></section>
   <section class="cartao" data-sec="mapa"><div id="mapa-ctl"></div><div id="mapa" class="mapa"></div><div id="legenda"></div></section>
   <section class="cartao painel-lista" data-sec="lista"><div id="lista-ctl"></div><div id="lista"></div></section>
 </main>
+<footer class="rodape"><svg class="estrela" style="color:var(--marca)"><use href="#estrela"/></svg><span>Comitê Periferias com Lula · 2º turno ao vivo do TSE; 1º turno, 2022 e 2014 dos Dados Abertos do TSE e do IBGE</span><svg class="estrela" style="color:var(--marca)"><use href="#estrela"/></svg></footer>
 <nav class="abas-cel" id="abas-cel" aria-label="Partes do painel">
   <button data-aba="resumo" aria-current="page">Resumo</button><button data-aba="mapa">Mapa</button><button data-aba="lista">Lista</button>
-</nav>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+</nav><script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script id="app">
 (function () {
   'use strict';
@@ -139,18 +180,21 @@ h3{margin:14px 0 6px;font-size:.95rem}
   var NOME_NIVEL = { br: 'País', reg: 'Grande Região', uf: 'Estado', int: 'Região intermediária', ime: 'Região imediata', rm: 'Região metropolitana', mun: 'Município', zon: 'Zona eleitoral', zz: 'Exterior' };
   var PLURAL = { reg: 'Grandes Regiões', uf: 'Estados', int: 'Intermediárias', ime: 'Imediatas', rm: 'Regiões metropolitanas', mun: 'Municípios', zon: 'Zonas' };
   // cores: finalistas com a paleta dos itens do projeto; 3 tons pela vantagem (< 5, 5–15, ≥ 15 p.p.)
-  var TONS = { a: ['#b9cfdd', '#77a0bb', '#3b6f8f'], b: ['#f2d0aa', '#e6a866', '#d9822b'] };
-  var DIV = ['#b4541f', '#d9822b', '#f0c08f', '#e8e2d4', '#9fc0d6', '#5b8fb3', '#1f5a8c'];   // queda laranja × alta azul
+  // cores da marca: Lula no vermelho do Comitê, Flávio em azul; 3 tons pela vantagem (< 5, 5–15, ≥ 15 p.p.)
+  var TONS = { a: ['#cfdbe7', '#7d9dbd', '#2f5d8a'], b: ['#f6c7c3', '#e8706a', '#c81414'] };
+  // "Quanto mudou": a cor diz para que lado o voto andou — vermelho = na direção de Lula, azul = na direção de Flávio
+  var DIV_B = ['#2f5d8a', '#7d9dbd', '#cddae6', '#efe8e2', '#f6c7c3', '#e8706a', '#b81010'];
+  function divDe(q) { return q === 'b' ? DIV_B : DIV_B.slice().reverse(); }
   var DIV_LIM = [-10, -5, -1, 1, 5, 10];
-  var SEQ = ['#d6e4ee', '#a9c6da', '#6f9ec0', '#3b6f8f', '#1f4a66'];
-  var TEMA = { light: { semDado: '#ddd7ca', borda: '#ffffff' }, dark: { semDado: '#3a434e', borda: '#252c35' } };
+  var SEQ = ['#e4e7eb', '#c0c7d0', '#8f9aa7', '#5c6979', '#2f3a47'];   // apuração: cinza neutro (não confunde com quem lidera)
+  var TEMA = { light: { semDado: '#ebe4dd', borda: '#ffffff' }, dark: { semDado: '#3a3331', borda: '#252121' } };
   var NF = new Intl.NumberFormat('pt-BR'), NP1 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
     NP2 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   // ======================================================================
   // Estado
   // ======================================================================
-  var st = { lugar: 'br', ver: 'uf', viaRm: null, mapa: 'lider', ele: 'auto', ref: 't1', quem: 'a', ord: 'aptos', desc: true,
+  var st = { lugar: 'br', ver: 'uf', viaRm: null, mapa: 'lider', ele: 'auto', ref: 't1', quem: 'b', ord: 'aptos', desc: true,
     busca: '', todos: false, aba: 'resumo', tema: 'light' };
   var BASE = { fonte: null, ind: null, lug: {}, v: { t1: {} }, geo: { uf: {}, reg: {}, mun: {}, int: {}, ime: {}, rm: {} },
     ufDe: {}, membros: {}, carregadas: {}, gerado: '' };
@@ -611,7 +655,7 @@ h3{margin:14px 0 6px;font-size:.95rem}
     var est = { carregando: 'Carregando…', antes: 'A apuração ainda não começou', apurando: 'Apurando', fim: 'Apuração concluída', falha: 'Sem resposta do TSE agora' }[AO.estado] || '';
     var h = AO.ultima ? ' · atualizado às ' + new Date(AO.ultima).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '';
     if (FILA.pausaAte > RELOGIO.agora()) est = 'Pausa (muitos "não encontrado")';
-    $('estado').innerHTML = '<span class="bolinha' + (AO.estado === 'apurando' ? ' viva' : '') + '"></span>' + esc(est + h);
+    $('estado').innerHTML = '<span class="bolinha' + (AO.estado === 'apurando' ? ' viva' : '') + '"></span>' + esc(est) + '<span class="hora">' + esc(h) + '</span>';
     var f;
     if (BASE.fonte === 'base') f = '<b>Fonte:</b> 1º turno de 2026 e 2º turnos de 2022 e 2014 vêm da <b>base do projeto</b> (arquivos publicados junto com este painel, conferidos com os números oficiais). ';
     else if (BASE.fonte === 'reserva') f = '<b>Fonte:</b> a base do projeto não abriu, então <b>tudo vem direto do TSE</b> (mais lento, sem mapa e sem 2022/2014). ';
@@ -708,7 +752,7 @@ h3{margin:14px 0 6px;font-size:.95rem}
       if (!y || !y.completo || !y.v || !r) return { c: semDado, o: 0.9 };
       var d = pct(y.v, st.quem) - pct(r, st.quem), i = 0;
       while (i < DIV_LIM.length && d >= DIV_LIM[i]) i++;
-      return { c: DIV[i], o: 0.9, d: d };
+      return { c: divDe(st.quem)[i], o: 0.9, d: d };
     }
     var e = eleMapa(), v, parcial = false;
     if (e === 't2') { var z = vivo(k); v = z && z.v; parcial = !!(z && !z.completo); } else v = base(k, e);
@@ -742,7 +786,7 @@ h3{margin:14px 0 6px;font-size:.95rem}
     if (u && !ufCarregada(u)) return;
     // no celular o mapa fica numa aba escondida: desenhado escondido, ele fica com tamanho zero e se enquadra errado
     if (el.offsetWidth === 0) return;
-    if (MAPA) MAPA.invalidateSize();
+    if (MAPA) MAPA.invalidateSize({ animate: false, pan: false });
     if (!MAPA) {
       el.innerHTML = '';
       MAPA = L.map('mapa', { preferCanvas: true, zoomSnap: 0.25, attributionControl: false, scrollWheelZoom: true });
@@ -767,7 +811,7 @@ h3{margin:14px 0 6px;font-size:.95rem}
     if (q !== QUADRO && feats.length) {
       QUADRO = q;
       var bb = CAMADA.getBounds();
-      if (bb && bb.isValid()) MAPA.fitBounds(bb, { padding: [12, 12] });
+      if (bb && bb.isValid()) MAPA.fitBounds(bb, { padding: [12, 12], animate: false });
     }
   }
   function dica(k) {
@@ -784,7 +828,7 @@ h3{margin:14px 0 6px;font-size:.95rem}
     if (st.mapa === 'apur') { ['até 25%', '25–50%', '50–75%', '75–99%', '100%'].forEach(function (t, i) { it(SEQ[i], t); }); it(TEMA[st.tema].semDado, 'sem apuração'); }
     else if (st.mapa === 'mudou') {
       var t = ['caiu 10 p.p. ou mais', '5 a 10', '1 a 5', 'quase igual (±1)', 'subiu 1 a 5', '5 a 10', '10 p.p. ou mais'];
-      DIV.forEach(function (c, i) { it(c, t[i]); }); it(TEMA[st.tema].semDado, 'ainda não 100% apurado');
+      divDe(st.quem).forEach(function (c, i) { it(c, t[i]); }); it(TEMA[st.tema].semDado, 'ainda não 100% apurado');
       h.push('<p class="nota">Percentual de ' + esc(FIN[st.quem].nome) + ' no 2º turno menos o da eleição escolhida. Só lugares 100% apurados (comparação justa).</p>');
     } else {
       ['a', 'b'].forEach(function (q) { TONS[q].forEach(function (c, i) { it(c, FIN[q].nome + ' ' + ['até 5 p.p.', '5 a 15', '15 p.p. ou mais'][i]); }); });
@@ -798,7 +842,7 @@ h3{margin:14px 0 6px;font-size:.95rem}
   // ---- lista ordenável
   function linhaDe(k) {
     var v1 = base(k, 't1'), x = vivo(k), v2 = x && x.v, r = base(k, st.ref);
-    var d = x && x.completo && v2 && r ? pct(v2, 'a') - pct(r, 'a') : null;
+    var d = x && x.completo && v2 && r ? pct(v2, st.quem) - pct(r, st.quem) : null;
     return { k: k, nome: nomeDe(k), apur: x && x.ts ? 100 * x.st / x.ts : null, pa: pct(v2, 'a'), pb: pct(v2, 'b'), dif: d, aptos: v1 ? v1[I.aptos] : null, p1: pct(v1, 'a') };
   }
   function renderLista() {
@@ -821,7 +865,7 @@ h3{margin:14px 0 6px;font-size:.95rem}
       return s * (a - c);
     });
     var total = linhas.length, mostrar = st.todos ? linhas : linhas.slice(0, 300);
-    var cols = [['nome', 'Lugar', ''], ['apur', 'Apurado', 'n'], ['pa', FIN.a.nome, 'n'], ['pb', FIN.b.nome, 'n'], ['dif', 'Mudança de ' + FIN.a.nome, 'n'], ['aptos', 'Eleitores', 'n']];
+    var cols = [['nome', 'Lugar', ''], ['apur', 'Apurado', 'n'], ['pa', FIN.a.nome, 'n'], ['pb', FIN.b.nome, 'n'], ['dif', 'Mudança de ' + FIN[st.quem].nome, 'n'], ['aptos', 'Eleitores', 'n']];
     var h = ['<div class="tab-rola"><table class="tab"><thead><tr>'];
     cols.forEach(function (c) { h.push('<th class="' + c[2] + '"><button data-ord="' + c[0] + '"' + (st.ord === c[0] ? ' aria-sort="' + (st.desc ? 'descending' : 'ascending') + '"' : '') + '>' + esc(c[1]) + (st.ord === c[0] ? (st.desc ? ' ▼' : ' ▲') : '') + '</button></th>'); });
     h.push('</tr></thead><tbody>');
@@ -833,7 +877,7 @@ h3{margin:14px 0 6px;font-size:.95rem}
     h.push('</tbody></table></div>');
     if (n === 'br' || n === 'reg') h.push('<p class="nota"><b>Regiões intermediárias e imediatas, municípios e regiões metropolitanas</b> ficam dentro de cada estado: toque no nome do estado.</p>');
     if (total > mostrar.length) h.push('<p class="nota">Mostrando ' + mostrar.length + ' de ' + total + '. <button class="btn" data-acao="todos">Mostrar todos</button></p>');
-    h.push('<p class="nota">Mudança = percentual de ' + esc(FIN.a.nome) + ' no 2º turno menos o da eleição escolhida, só nos lugares 100% apurados. Percentuais sobre os votos válidos.</p>');
+    h.push('<p class="nota">Mudança = percentual de ' + esc(FIN[st.quem].nome) + ' no 2º turno menos o da eleição escolhida, só nos lugares 100% apurados. Percentuais sobre os votos válidos.</p>');
     $('lista').innerHTML = h.join('');
   }
   function renderAbas() {
@@ -892,7 +936,7 @@ h3{margin:14px 0 6px;font-size:.95rem}
     if ((v = b.getAttribute('data-aba')) != null) { st.aba = v; render(); return; }
     if ((v = b.getAttribute('data-acao')) != null) {
       if (v === 'atualizar') { if (BASE.fonte) ciclo(); }
-      else if (v === 'tema') { st.tema = st.tema === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', st.tema); render(); }
+      else if (v === 'tema') { st.tema = st.tema === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', st.tema); try { localStorage.setItem('vira-tema', st.tema); } catch (e) { /* ok */ } render(); }
       else if (v === 'todos') { st.todos = true; render(); }
     }
   });
@@ -909,7 +953,9 @@ h3{margin:14px 0 6px;font-size:.95rem}
   // Início
   // ======================================================================
   function iniciar() {
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) { st.tema = 'dark'; document.documentElement.setAttribute('data-theme', 'dark'); }
+    // tema claro (o da marca) sempre; o escuro só por escolha do visitante, lembrada neste aparelho
+    try { if (localStorage.getItem('vira-tema') === 'dark') st.tema = 'dark'; } catch (e) { /* sem armazenamento: fica o claro */ }
+    document.documentElement.setAttribute('data-theme', st.tema);
     if (window.matchMedia && window.matchMedia('(max-width: 760px)').matches) st.aba = 'resumo';
     render();
     var parar = false;
