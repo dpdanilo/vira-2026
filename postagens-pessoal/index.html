@@ -120,6 +120,8 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
 .img-btn:hover{color:var(--acento);border-color:var(--marca)}
 .img-btn2{right:118px}
 .aviso-rapido{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:4500;max-width:min(560px,calc(100% - 32px));background:#2b2525;color:#fff;border-radius:12px;padding:12px 16px;font-size:.88rem;box-shadow:0 6px 24px rgba(0,0,0,.3)}
+.aviso-rapido .av-links{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:8px}
+.aviso-rapido a{color:#fff;font-weight:800;text-decoration:underline;text-underline-offset:3px}
 .slide .env-vis{width:100%;height:100%;display:grid;gap:.4em;min-height:0}
 .slide .env-p{min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .slide .env-p>svg{width:100%;height:100%;max-height:100%}
@@ -218,6 +220,48 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
 .barra i{display:block;height:100%;background:var(--marca);border-radius:5px}
 .rodape{display:flex;align-items:center;justify-content:center;gap:10px;padding:18px 24px 28px;color:var(--sub);font-size:.78rem;text-align:center}
 .rodape .estrela{width:16px;height:16px;fill:var(--marca)}
+.rel-fundo{position:fixed;inset:0;z-index:4200;background:rgba(20,10,10,.5);display:flex;align-items:center;justify-content:center;padding:16px}
+.rel-caixa{background:var(--card);color:var(--txt);border-radius:18px;width:min(760px,100%);max-height:calc(100dvh - 32px);display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.rel-topo{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 8px;border-bottom:1px solid var(--linha)}
+.rel-topo h2{margin:0;font-family:'Archivo',sans-serif;font-weight:900;font-size:1.2rem}
+.rel-x{width:44px;height:44px;border:0;background:none;font-size:1.6rem;color:var(--sub)}
+.rel-corpo{overflow:auto;padding:14px 18px;flex:1;min-height:0}
+.rel-pe{display:flex;align-items:center;gap:8px;padding:10px 18px 14px;border-top:1px solid var(--linha);flex-wrap:wrap}
+.rel-conta{flex:1;color:var(--sub);font-size:.86rem;min-width:140px}
+.btn-destaque{background:var(--marca);color:#fff;border-color:var(--marca);font-weight:800}
+.btn:disabled{opacity:.45;cursor:default}
+.rel-modos{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:10px;margin-bottom:14px}
+.rel-modos button{text-align:left;border:1.5px solid var(--linha);background:var(--card);border-radius:14px;padding:12px 14px;min-height:44px}
+.rel-modos button b{display:block;font-family:'Archivo',sans-serif;font-weight:800;font-size:1rem}
+.rel-modos button small{display:block;color:var(--sub);font-size:.82rem;margin-top:2px}
+.rel-modos button[aria-checked="true"]{border-color:var(--marca);background:var(--marca-claro);box-shadow:inset 0 0 0 1px var(--marca)}
+.rel-lista-padrao ol{margin:6px 0 10px;padding-left:22px}
+.rel-lista-padrao small,.rel-nota{color:var(--sub)}
+.rel-nota{font-size:.82rem}
+.rel-barra{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.rel-barra .btn{min-height:36px;font-size:.84rem}
+.rel-gerais{display:flex;gap:18px;margin:0 0 10px;font-weight:600}
+.rel-gerais label,.rel-item-cab label,.rel-chk{display:inline-flex;align-items:center;gap:8px;min-height:36px;cursor:pointer}
+.rel-fundo input[type=checkbox]{width:18px;height:18px;accent-color:var(--marca);flex:none}
+.rel-parte{border:1px solid var(--linha);border-radius:12px;margin-bottom:8px}
+.rel-parte-cab{display:flex;align-items:center;gap:8px;padding:6px 10px;flex-wrap:wrap}
+.rel-parte-cab label{font-weight:800;font-family:'Archivo',sans-serif;font-size:.92rem;cursor:pointer}
+.rel-parte-cab small{color:var(--sub);font-size:.8rem;flex:1}
+.rel-abrir,.rel-mais,.rel-del{border:1px solid var(--linha);background:var(--card);border-radius:999px;min-height:36px;padding:0 12px;font-size:.8rem;font-weight:700;color:var(--acento)}
+.rel-itens{border-top:1px solid var(--linha2);padding:4px 10px 8px 34px}
+.rel-item{padding:2px 0;border-bottom:1px solid var(--linha2)}
+.rel-item:last-child{border-bottom:0}
+.rel-item-cab{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:.9rem}
+.rel-versao-ed{margin:4px 0 8px;padding:8px 10px;border-radius:10px;background:var(--neutro-bg);border-left:3px solid var(--marca)}
+.rel-v-cab{display:flex;align-items:center;justify-content:space-between;font-size:.85rem}
+.rel-campos{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:6px}
+.rel-campos>label{display:flex;flex-direction:column;gap:3px;font-size:.78rem;color:var(--sub);font-weight:600}
+.rel-campos .sel{min-height:38px;font-size:.84rem;color:var(--txt)}
+.rel-campos fieldset{border:0;margin:0;padding:0;flex-basis:100%;display:flex;flex-wrap:wrap;gap:0 14px;font-size:.84rem}
+.rel-campos legend{font-size:.78rem;color:var(--sub);font-weight:600;padding:0;margin-bottom:2px}
+.rel-v-res{margin:6px 0 0;font-size:.78rem;color:var(--sub)}
+.rel-versao{margin:0 0 8px;font-size:.82rem;font-weight:700;color:var(--acento)}
+@media (max-width:560px){.rel-itens{padding-left:10px}.rel-fundo{padding:0}.rel-caixa{border-radius:0;max-height:100dvh;height:100dvh}}
 .espera{position:fixed;inset:0;z-index:4000;background:rgba(20,10,10,.55);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1.1rem;text-align:center;padding:20px}
 /* documento (PDF): blocos desenhados fora da tela, largura fixa, sempre no tema claro */
 #doc{position:absolute;left:-30000px;top:0;width:900px;background:#fff}
@@ -292,7 +336,7 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
 <script>
 (function () {
   'use strict';
-  var BUILD = '26/10/2026 14:45';
+  var BUILD = '27/10/2026 01:36';
   var D = JSON.parse(document.getElementById('dados').textContent);
   var V = D.v, M = V.mun, N = M.cod.length;
   var NF = new Intl.NumberFormat('pt-BR');
@@ -534,6 +578,7 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
   var MAPAS = {};
   // opts: {cor(i) -> cor | null, dica(i) -> html, uf: 'SP' | null (recorte), alt}
   function Mapa(id, opts) {
+    if (DOC && REL_UF && !opts.estatico) opts.uf = REL_UF;   // versão extra do documento com recorte de um estado
     this.id = id; this.o = opts; this.z = 1; this.dx = 0; this.dy = 0;
   }
   Mapa.prototype.montar = function (caixa) {
@@ -1412,7 +1457,8 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
   // ---------- enviar um quadro para os Painéis de Postagens: o gráfico (SVG, igual ao da tela), os mapas (a cor de
   // cada município, como texto curto) e a legenda vão para a "caixa de recebidos" no aparelho ('virada-envios'), que os
   // dois Painéis de Postagens (Comitê e pessoal) leem e transformam em card. Só funciona no mesmo navegador e com os
-  // painéis abertos do mesmo jeito (todos pelo Painel Gerador ou todos pelos arquivos da pasta).
+  // painéis abertos do mesmo jeito (todos no site publicado, todos pelo Painel Gerador ou todos pelos arquivos da pasta);
+  // o aviso traz o link certo de cada jeito (enderecosPostagens) e as postagens abertas recebem na hora (evento storage).
   var CHAVE_ENVIOS = 'virada-envios';
   function lerEnvios() { try { var x = JSON.parse(localStorage.getItem(CHAVE_ENVIOS) || '[]'); return Array.isArray(x) ? x : []; } catch (e) { return []; } }
   function gravarEnvios(l) { localStorage.setItem(CHAVE_ENVIOS, JSON.stringify(l)); }
@@ -1452,11 +1498,29 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
     while (l.length > 1 && JSON.stringify(l).length > 4000000) l.pop();   // a memória do navegador tem limite: saem os mais antigos
     try { gravarEnvios(l); }
     catch (e) { return avisoRapido('Não consegui guardar no navegador (memória cheia ou bloqueada). Descarte alguns recebidos no Painel de Postagens e tente de novo.'); }
-    avisoRapido('<b>Enviado para os Painéis de Postagens.</b> Lá, na aba Carrosséis, ele aparece em "Recebidos do painel A virada" (' + l.length + ' na caixa). Abra o Painel de Postagens no mesmo navegador e do mesmo jeito que este painel (pelo Painel Gerador ou pelo arquivo da pasta).');
+    var ends = enderecosPostagens();
+    avisoRapido('<b>Enviado para os Painéis de Postagens.</b> Lá, na aba Carrosséis, ele aparece em "Recebidos do painel A virada" (' + l.length + ' na caixa).' +
+      (ends.length ? '<span class="av-links">' + ends.map(function (x) { return '<a href="' + encodeURI(x[1]) + '" target="' + x[2] + '" rel="noopener">Abrir ' + esc(x[0]) + ' ↗</a>'; }).join('') + '</span>'
+        : ' Abra o Painel de Postagens neste mesmo navegador.'), 14000);
   }
-  function avisoRapido(html) {
+  // endereço dos dois Painéis de Postagens a partir de onde este painel foi aberto: site publicado (…/virada/ →
+  // …/postagens/), Painel Gerador (/p/virada-2026/ → /p/postagens-2turno-2026/) ou arquivos da pasta do projeto.
+  // O nome da aba (3º item) faz o link reaproveitar a aba das postagens já aberta
+  function enderecosPostagens() {
+    var p = location.pathname, d = decodeURIComponent(p), C = 'Painel de Postagens', P = 'Postagens (pessoal)';
+    if (/\/p\/virada-2026\//.test(p)) return [[C, '/p/postagens-2turno-2026/', 'vira-postagens'], [P, '/p/postagens-pessoal-2turno-2026/', 'vira-postagens-pb']];
+    if (location.protocol === 'file:') {
+      if (/A virada de 2026 \(preliminar\)\.html$/.test(d)) return [[C, 'Painel de Postagens - 2 Turno 2026.html', 'vira-postagens'], [P, 'Painel de Postagens (pessoal) - 2 Turno 2026.html', 'vira-postagens-pb']];
+      if (/\/projetos\/virada-2026\/out\/(index\.html)?$/.test(d)) return [[C, '../../postagens-2turno-2026/out/index.html', 'vira-postagens'], [P, '../../postagens-pessoal-2turno-2026/out/index.html', 'vira-postagens-pb']];
+      if (/\/virada\/out\/(index\.html)?$/.test(d)) return [[C, 'postagens.html', 'vira-postagens'], [P, 'postagens-pessoal.html', 'vira-postagens-pb']];
+      return [];
+    }
+    if (/\/virada\/(index\.html)?$/.test(p)) return [[C, '../postagens/', 'vira-postagens'], [P, '../postagens-pessoal/', 'vira-postagens-pb']];
+    return [];
+  }
+  function avisoRapido(html, ms) {
     var d = $('aviso-rapido'); if (!d) { d = document.createElement('div'); d.id = 'aviso-rapido'; d.className = 'aviso-rapido'; d.setAttribute('role', 'status'); document.body.appendChild(d); }
-    d.innerHTML = html; d.hidden = false; clearTimeout(avisoRapido.t); avisoRapido.t = setTimeout(function () { d.hidden = true; }, 7000);
+    d.innerHTML = html; d.hidden = false; clearTimeout(avisoRapido.t); avisoRapido.t = setTimeout(function () { d.hidden = true; }, ms || 7000);
   }
   // ---------- editor de marcação das imagens (igual nos três modelos): antes de baixar uma imagem, abre uma janela para
   // marcar destaques — seta, círculo, retângulo, texto, número, marca-texto, holofote (escurece o resto) e desfoque.
@@ -1912,7 +1976,7 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
     if (b.hasAttribute('data-ord')) { var k = b.getAttribute('data-ord'); if (st.ordEst === k) st.ordInv = !st.ordInv; else { st.ordEst = k; st.ordInv = k !== 'nome'; } render(); return; }
     var a = b.getAttribute('data-acao');
     if (a === 'tema') { var esc2 = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', esc2); try { localStorage.setItem('vira-tema', esc2); } catch (er) { /* sem armazenamento */ } render(); }
-    if (a === 'pdf') baixarPdf();
+    if (a === 'pdf') abrirRel();
     if (a === 'planilha') baixarPlanilha();
   });
   document.addEventListener('change', function (e) {
@@ -1937,59 +2001,264 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
       return !(el.querySelector && el.querySelector('symbol'));
     };
   }
+  // ---------- documento (PDF): "Padrão" (o documento inteiro, como sempre) ou "Personalizado" (partes e quadros
+  // marcados, mais versões extras de um quadro: as mesmas opções do quadro na tela — o que o mapa mostra, ranking,
+  // característica, lugar… — e, nos mapas, o recorte de um estado e os contornos e nomes de cada nível). Cada parte é
+  // desenhada de novo na área #doc com as opções da versão e o quadro é fotografado (mesmo índice do catálogo).
+  // A escolha fica guardada no aparelho ('virada-relatorio').
   var PDF_AND = false;   // um PDF por vez: dois ao mesmo tempo disputavam a área #doc e travavam
-  function baixarPdf() {
+  var REL_ST = { m3: 'venc26', m3uf: '', m4: 'cat' };   // como os mapas entram no documento padrão
+  var REL_UF = '';   // recorte de estado da versão sendo desenhada (Mapa usa no lugar do próprio uf)
+  var CTL_ATTR = { m3: 'm3', m4: 'm4', cmpt: 'cmpT', g6s: 'g6s' };
+  var CTL_NOME = { m3: 'O que o mapa mostra', m4: 'O que o mapa mostra', rk: 'Ranking', v5: 'Característica', g6: 'Lugar', g6s: 'Grupo', md: 'O que mostrar', cmpT: 'Comparar com' };
+  function blocosDoAto(s) {
+    return [s.querySelector('.ato-cab'), s.querySelector('.lead'), s.querySelector('.numeros')].filter(Boolean).concat([].slice.call(s.querySelectorAll(':scope > .cartao, :scope > .grade > .cartao, :scope > .em-breve, :scope > .destaque')));
+  }
+  function nomeBloco(el, k) {
+    if (el.classList.contains('ato-cab')) return 'Título da parte';
+    if (el.classList.contains('lead')) return 'Texto de abertura';
+    if (el.classList.contains('numeros')) return 'Números em destaque';
+    var h = el.querySelector('h3'); return h ? h.textContent.trim() : (el.textContent.trim().slice(0, 70) || 'Quadro ' + (k + 1));
+  }
+  // opções do quadro na tela (caixas de escolha e botões de alternar), para montar as versões extras
+  function controlesBloco(el) {
+    var c = [], visto = {};
+    el.querySelectorAll('select[data-sel]').forEach(function (s) {
+      var k = s.getAttribute('data-sel'); if (k === 'm3uf' || visto[k]) return; visto[k] = 1;   // estado: vira o "Recorte" do mapa
+      c.push({ k: k, nome: CTL_NOME[k] || s.getAttribute('aria-label') || 'Opção', ops: [].map.call(s.options, function (o) { return [o.value, o.textContent.trim()]; }) });
+    });
+    el.querySelectorAll('.seg').forEach(function (g) {
+      var bs = [].slice.call(g.querySelectorAll('button')), at = null;
+      Object.keys(CTL_ATTR).some(function (a) { if (bs.length && bs[0].hasAttribute('data-' + a)) { at = a; return true; } return false; });
+      if (!at || visto[CTL_ATTR[at]]) return; visto[CTL_ATTR[at]] = 1;
+      c.push({ k: CTL_ATTR[at], nome: CTL_NOME[CTL_ATTR[at]] || 'Opção', ops: bs.map(function (b) { return [b.getAttribute('data-' + at), b.textContent.trim()]; }) });
+    });
+    return c;
+  }
+  // catálogo: partes → quadros (desenhados uma vez, sem mapas, como no documento padrão)
+  var REL_CAT = null;
+  function catalogoRel() {
+    if (REL_CAT) return REL_CAT;
+    var sSt = {}, sM = {}, dv = document.createElement('div'), antes = DOC;
+    Object.keys(REL_ST).forEach(function (k) { sSt[k] = st[k]; st[k] = REL_ST[k]; });
+    Object.keys(MAPAS).forEach(function (k) { sM[k] = MAPAS[k]; });
+    DOC = true;
+    try {
+      REL_CAT = ATOS.map(function (a) {
+        dv.innerHTML = '<section class="ato">' + RENDER[a.id]() + '</section>';
+        return { id: a.id, nome: (a.n ? a.n + '. ' : '') + a.t, blocos: blocosDoAto(dv.firstChild).map(function (el, k) {
+          return { id: a.id + ':' + k, nome: nomeBloco(el, k), ctl: controlesBloco(el), mapa: !!el.querySelector('.mapa-caixa') };
+        }) };
+      });
+    } finally {
+      DOC = antes; Object.keys(REL_ST).forEach(function (k) { st[k] = sSt[k]; });
+      Object.keys(MAPAS).forEach(function (k) { if (!(k in sM)) delete MAPAS[k]; }); Object.keys(sM).forEach(function (k) { MAPAS[k] = sM[k]; });
+    }
+    return REL_CAT;
+  }
+  function relNovo() { return { modo: 'padrao', capa: true, sum: true, fora: {}, ver: {} }; }   // fora[id] = quadro desmarcado; ver[id] = versões extras
+  function lerRel() {
+    try { var x = JSON.parse(localStorage.getItem('virada-relatorio') || 'null'); if (x && typeof x.fora === 'object' && typeof x.ver === 'object') return { modo: x.modo === 'pers' ? 'pers' : 'padrao', capa: x.capa !== false, sum: x.sum !== false, fora: x.fora || {}, ver: x.ver || {} }; } catch (e) { /* sem armazenamento */ }
+    return relNovo();
+  }
+  var REL = lerRel(), REL_ABERTO = {};
+  function guardarRel() { try { localStorage.setItem('virada-relatorio', JSON.stringify(REL)); } catch (e) { /* sem armazenamento */ } }
+  function bloco(id) { var p = id.split(':'), a = catalogoRel().filter(function (x) { return x.id === p[0]; })[0]; return a && a.blocos[+p[1]]; }
+  function novaVersao(b) {
+    var v = { o: {}, uf: '' };
+    b.ctl.forEach(function (c) { v.o[c.k] = st[c.k] != null && c.ops.some(function (o) { return o[0] === String(st[c.k]); }) ? String(st[c.k]) : (REL_ST[c.k] != null ? REL_ST[c.k] : c.ops[0][0]); });
+    if (b.mapa) { v.b = {}; v.r = {}; CAMADAS_V.forEach(function (n) { if (st.cam.b[n[0]].on) v.b[n[0]] = true; if (st.cam.r[n[0]]) v.r[n[0]] = true; }); }
+    return v;
+  }
+  function resumoVersao(b, v) {
+    var t = b.ctl.map(function (c) { var o = c.ops.filter(function (x) { return x[0] === v.o[c.k]; })[0]; return o ? o[1] : ''; }).filter(Boolean);
+    if (b.mapa) {
+      t.push(v.uf ? V.nomes.uf[v.uf] || v.uf : 'Brasil inteiro');
+      var nb = CAMADAS_V.filter(function (n) { return v.b && v.b[n[0]]; }).map(function (n) { return n[1]; }), nr = CAMADAS_V.filter(function (n) { return v.r && v.r[n[0]]; }).map(function (n) { return n[1]; });
+      if (nb.length) t.push('contornos: ' + nb.join(', ').toLowerCase()); if (nr.length) t.push('nomes: ' + nr.join(', ').toLowerCase());
+    }
+    return t.join(' · ');
+  }
+  function contaRel() {
+    var q = 0, v = 0;
+    catalogoRel().forEach(function (a) { a.blocos.forEach(function (b) { if (!REL.fora[b.id]) q++; v += (REL.ver[b.id] || []).length; }); });
+    return { q: q, v: v };
+  }
+  function htmlRel() {
+    var cat = catalogoRel(), pers = REL.modo === 'pers', h = '';
+    h += '<div class="rel-modos" role="radiogroup" aria-label="Tipo de documento"><button data-rel="padrao" role="radio" aria-checked="' + !pers + '"><b>Padrão</b><small>O documento completo: capa, sumário e as ' + cat.length + ' partes, com todos os quadros.</small></button>' +
+      '<button data-rel="pers" role="radio" aria-checked="' + pers + '"><b>Personalizado</b><small>Escolha as partes e os quadros e acrescente versões de um gráfico ou mapa (outro estado, outra opção, outros contornos).</small></button></div>';
+    if (!pers) return h + '<div class="rel-lista-padrao"><p>Entram, nesta ordem:</p><ol>' + cat.map(function (a) { return '<li>' + esc(a.nome) + ' <small>(' + a.blocos.length + ' itens)</small></li>'; }).join('') + '</ol><p class="rel-nota">Os mapas entram com o Brasil inteiro e os contornos escolhidos em "Camadas". As demais opções seguem o que está escolhido na tela.</p></div>';
+    h += '<div class="rel-barra"><button class="btn" data-rel="tudo">Marcar tudo</button><button class="btn" data-rel="nada">Desmarcar tudo</button><button class="btn" data-rel="reset">Voltar ao padrão</button></div>';
+    h += '<div class="rel-gerais"><label><input type="checkbox" data-relg="capa"' + (REL.capa ? ' checked' : '') + '> Capa</label><label><input type="checkbox" data-relg="sum"' + (REL.sum ? ' checked' : '') + '> Sumário</label></div>';
+    cat.forEach(function (a) {
+      var n = a.blocos.filter(function (b) { return !REL.fora[b.id]; }).length, nv = 0; a.blocos.forEach(function (b) { nv += (REL.ver[b.id] || []).length; });
+      var ab = !!REL_ABERTO[a.id];
+      h += '<div class="rel-parte"><div class="rel-parte-cab"><input type="checkbox" id="rl-' + a.id + '" data-relato="' + a.id + '"' + (n === a.blocos.length ? ' checked' : '') + (n > 0 && n < a.blocos.length ? ' data-meio' : '') + '>' +
+        '<label for="rl-' + a.id + '">' + esc(a.nome) + '</label><small>' + n + ' de ' + a.blocos.length + (nv ? ' · ' + nv + (nv === 1 ? ' versão extra' : ' versões extras') : '') + '</small>' +
+        '<button class="rel-abrir" data-rel="abrir" data-v="' + a.id + '" aria-expanded="' + ab + '">' + (ab ? 'Fechar ▴' : 'Quadros ▾') + '</button></div>';
+      if (ab) h += '<div class="rel-itens">' + a.blocos.map(function (b) {
+        var vs = REL.ver[b.id] || [], pode = b.ctl.length || b.mapa;
+        return '<div class="rel-item"><div class="rel-item-cab"><label><input type="checkbox" data-relbl="' + b.id + '"' + (REL.fora[b.id] ? '' : ' checked') + '> ' + esc(b.nome) + '</label>' +
+          (pode ? '<button class="rel-mais" data-rel="addv" data-v="' + b.id + '" title="Acrescentar este quadro de novo, com outras opções">+ Versão extra</button>' : '') + '</div>' +
+          vs.map(function (v, i) { return htmlVersao(b, v, i); }).join('') + '</div>';
+      }).join('') + '</div>';
+      h += '</div>';
+    });
+    return h;
+  }
+  function htmlVersao(b, v, i) {
+    var id = b.id + '|' + i, h = '<div class="rel-versao-ed"><div class="rel-v-cab"><b>Versão extra ' + (i + 1) + '</b><button class="rel-del" data-rel="delv" data-v="' + id + '" aria-label="Remover esta versão">Remover</button></div><div class="rel-campos">';
+    b.ctl.forEach(function (c) {
+      h += '<label>' + esc(c.nome) + '<select class="sel" data-relv="' + id + '|o|' + c.k + '">' + c.ops.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (v.o[c.k] === o[0] ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select></label>';
+    });
+    if (b.mapa) {
+      h += '<label>Recorte do mapa<select class="sel" data-relv="' + id + '|uf|"><option value="">Brasil inteiro</option>' + Object.keys(V.nomes.uf).sort().map(function (u) { return '<option value="' + u + '"' + (v.uf === u ? ' selected' : '') + '>' + esc(V.nomes.uf[u]) + '</option>'; }).join('') + '</select></label>';
+      h += '<fieldset><legend>Contornos</legend>' + CAMADAS_V.map(function (n) { return '<label class="rel-chk"><input type="checkbox" data-relv="' + id + '|b|' + n[0] + '"' + (v.b && v.b[n[0]] ? ' checked' : '') + '> ' + n[1] + '</label>'; }).join('') + '</fieldset>';
+      h += '<fieldset><legend>Nomes no mapa</legend>' + CAMADAS_V.map(function (n) { return '<label class="rel-chk"><input type="checkbox" data-relv="' + id + '|r|' + n[0] + '"' + (v.r && v.r[n[0]] ? ' checked' : '') + '> ' + n[1] + '</label>'; }).join('') + '</fieldset>';
+    }
+    return h + '</div><p class="rel-v-res">' + esc(resumoVersao(b, v)) + '</p></div>';
+  }
+  function renderRel() {
+    var j = $('rel-janela'), corpo = j.querySelector('.rel-corpo'), y = corpo.scrollTop;
+    corpo.innerHTML = htmlRel(); corpo.scrollTop = y;
+    corpo.querySelectorAll('[data-meio]').forEach(function (c) { c.indeterminate = true; });
+    var n = contaRel();
+    j.querySelector('.rel-conta').textContent = REL.modo === 'pers' ? n.q + ' quadro' + (n.q === 1 ? '' : 's') + (n.v ? ' + ' + n.v + (n.v === 1 ? ' versão extra' : ' versões extras') : '') : 'Documento completo';
+    j.querySelector('[data-rel="baixar"]').disabled = REL.modo === 'pers' && !n.q && !n.v;
+  }
+  function abrirRel() {
+    var j = $('rel-janela');
+    if (!j) {
+      j = document.createElement('div'); j.id = 'rel-janela'; j.className = 'rel-fundo'; j.hidden = true;
+      j.innerHTML = '<div class="rel-caixa" role="dialog" aria-modal="true" aria-labelledby="rel-tit"><div class="rel-topo"><h2 id="rel-tit">Baixar documento (PDF)</h2><button class="rel-x" data-rel="fechar" aria-label="Fechar">×</button></div>' +
+        '<div class="rel-corpo"></div><div class="rel-pe"><span class="rel-conta"></span><button class="btn" data-rel="fechar">Cancelar</button><button class="btn btn-destaque" data-rel="baixar">Baixar PDF</button></div></div>';
+      document.body.appendChild(j);
+      j.addEventListener('click', function (e) {
+        if (e.target === j) return fecharRel();
+        var b = e.target.closest('[data-rel]'); if (!b) return;
+        var a = b.getAttribute('data-rel'), v = b.getAttribute('data-v');
+        if (a === 'fechar') return fecharRel();
+        if (a === 'baixar') { var cfg = REL.modo === 'pers' ? JSON.parse(JSON.stringify(REL)) : null; fecharRel(); baixarPdf(cfg); return; }
+        if (a === 'padrao' || a === 'pers') REL.modo = a;
+        if (a === 'tudo') { REL.fora = {}; REL.capa = REL.sum = true; }
+        if (a === 'nada') { catalogoRel().forEach(function (p) { p.blocos.forEach(function (x) { REL.fora[x.id] = true; }); }); REL.ver = {}; REL.capa = REL.sum = false; }
+        if (a === 'reset') { var m = REL.modo; REL = relNovo(); REL.modo = m; }
+        if (a === 'abrir') REL_ABERTO[v] = !REL_ABERTO[v];
+        if (a === 'addv') { (REL.ver[v] = REL.ver[v] || []).push(novaVersao(bloco(v))); delete REL.fora[v]; }
+        if (a === 'delv') { var p = v.split('|'); REL.ver[p[0]].splice(+p[1], 1); if (!REL.ver[p[0]].length) delete REL.ver[p[0]]; }
+        guardarRel(); renderRel();
+      });
+      j.addEventListener('change', function (e) {
+        var t = e.target, x;
+        if ((x = t.getAttribute('data-relg'))) REL[x] = t.checked;
+        else if ((x = t.getAttribute('data-relbl'))) { if (t.checked) delete REL.fora[x]; else REL.fora[x] = true; }
+        else if ((x = t.getAttribute('data-relato'))) catalogoRel().filter(function (p) { return p.id === x; })[0].blocos.forEach(function (b) { if (t.checked) delete REL.fora[b.id]; else REL.fora[b.id] = true; });
+        else if ((x = t.getAttribute('data-relv'))) {
+          var p = x.split('|'), ver = (REL.ver[p[0]] || [])[+p[1]]; if (!ver) return;
+          if (p[2] === 'o') ver.o[p[3]] = t.value; else if (p[2] === 'uf') ver.uf = t.value;
+          else { ver[p[2]] = ver[p[2]] || {}; if (t.checked) ver[p[2]][p[3]] = true; else delete ver[p[2]][p[3]]; }
+        } else return;
+        guardarRel(); renderRel();
+      });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !j.hidden) fecharRel(); });
+    }
+    renderRel(); j.hidden = false;
+    var f = j.querySelector('[aria-checked="true"]'); if (f) f.focus();
+  }
+  function fecharRel() { var j = $('rel-janela'); if (j) j.hidden = true; }
+  // aplica as opções de uma versão (e devolve como desfazer): opções do quadro, recorte do estado, contornos e nomes
+  function aplicarVersao(v) {
+    var s = {}, cam = st.cam;
+    Object.keys(v.o || {}).forEach(function (k) { s[k] = st[k]; st[k] = v.o[k]; });
+    REL_UF = v.uf || '';
+    if (v.b || v.r) {
+      var c = JSON.parse(JSON.stringify(cam));
+      CAMADAS_V.forEach(function (n) { c.b[n[0]].on = !!(v.b && v.b[n[0]]); c.r[n[0]] = !!(v.r && v.r[n[0]]); });
+      st.cam = c;
+    }
+    return function () { Object.keys(s).forEach(function (k) { st[k] = s[k]; }); REL_UF = ''; st.cam = cam; };
+  }
+  // cfg = null: documento padrão (tudo); senão {capa, sum, fora, ver} da janela "Personalizado"
+  function baixarPdf(cfg) {
     if (PDF_AND) return;
     PDF_AND = true;
     espera('Preparando o documento…');
     var temaAntes = document.documentElement.getAttribute('data-theme');
     Promise.all([carregar('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'), carregar('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js')]).then(function () {
       document.documentElement.setAttribute('data-theme', 'light');
+      var doc = $('doc'), salvo = { m3: st.m3, m3uf: st.m3uf, m4: st.m4 }, cat = catalogoRel();
       DOC = true;
-      var doc = $('doc'), salvo = { m3: st.m3, m3uf: st.m3uf, m4: st.m4 };
-      st.m3 = 'venc26'; st.m3uf = ''; st.m4 = 'cat';
-      doc.innerHTML = ATOS.map(function (a) { return '<section class="ato" data-doc="' + a.id + '">' + RENDER[a.id]() + '</section>'; }).join('');
-      montarMapas(doc);
-      var pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4' }), W = 210, Hp = 297, mg = 14, larg = W - 2 * mg;
-      // capa
-      pdf.setFillColor(210, 18, 18); pdf.rect(0, 0, W, 90, 'F');
-      try { pdf.addImage(D.logo, 'PNG', mg, 18, 40, 41); } catch (er) { /* sem logo */ }
-      pdf.setTextColor(255, 255, 255); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(11); pdf.text('ESTUDO · 2º TURNO DE 2026', 62, 30);
-      pdf.setFontSize(30); pdf.text('A virada de 2026', 62, 46);
-      pdf.setFont('helvetica', 'normal'); pdf.setFontSize(11); pdf.text('Comitê Periferias com Lula · versão preliminar de ' + BUILD, 62, 56);
-      pdf.setTextColor(43, 37, 37); pdf.setFontSize(12);
-      var linhas = pdf.splitTextToSize('Lula ' + fP(H26.v2p, 2) + ' × Flávio Bolsonaro ' + fP(H26.p2p, 2) + ' no 2º turno. Pela primeira vez desde 2002, quem ficou em segundo no 1º turno para Presidente venceu o 2º. Este documento conta onde, como e com quem a virada aconteceu.', larg);
-      pdf.text(linhas, mg, 110);
-      pdf.setFontSize(11); pdf.setFont('helvetica', 'bold'); pdf.text('Sumário', mg, 140); pdf.setFont('helvetica', 'normal');
-      ATOS.forEach(function (a, k) { pdf.text((a.n ? a.n + '. ' : '') + a.t, mg + 4, 150 + k * 7); });
-      pdf.setFontSize(8); pdf.setTextColor(110, 100, 97); pdf.text('Fontes: TSE (resultados oficiais e Dados Abertos) e IBGE. Detalhes em "Como foi feito".', mg, Hp - 12);
-      // blocos de cada parte: cabeçalho + cada cartão vira uma imagem; quebra de página quando não cabe
-      var blocos = [];
-      doc.querySelectorAll('section.ato').forEach(function (s) {
-        var lista = [s.querySelector('.ato-cab'), s.querySelector('.lead'), s.querySelector('.numeros')].filter(Boolean).concat([].slice.call(s.querySelectorAll(':scope > .cartao, :scope > .grade > .cartao, :scope > .em-breve, :scope > .destaque')));
-        lista.forEach(function (el, k) { blocos.push({ el: el, nova: k === 0 }); });
+      st.m3 = REL_ST.m3; st.m3uf = REL_ST.m3uf; st.m4 = REL_ST.m4;
+      // plano: cada quadro marcado e, logo depois dele, as suas versões extras; a primeira peça de cada parte abre página
+      var plano = [], partes = [];
+      cat.forEach(function (a) {
+        var prim = true;
+        a.blocos.forEach(function (b, k) {
+          var lista = (!cfg || !cfg.fora[b.id] ? [null] : []).concat(cfg && cfg.ver[b.id] || []);
+          lista.forEach(function (v) { plano.push({ a: a.id, k: k, v: v, b: b, nova: prim }); prim = false; });
+        });
+        if (!prim) partes.push(ATOS.filter(function (x) { return x.id === a.id; })[0]);
       });
-      var y = Hp, pag = 1, i = 0;
+      var capa = !cfg || cfg.capa, sum = !cfg || cfg.sum;
+      var pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4' }), W = 210, Hp = 297, mg = 14, larg = W - 2 * mg, livre = !capa && !sum;
+      if (capa) {
+        pdf.setFillColor(210, 18, 18); pdf.rect(0, 0, W, 90, 'F');
+        try { pdf.addImage(D.logo, 'PNG', mg, 18, 40, 41); } catch (er) { /* sem logo */ }
+        pdf.setTextColor(255, 255, 255); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(11); pdf.text('ESTUDO · 2º TURNO DE 2026', 62, 30);
+        pdf.setFontSize(30); pdf.text('A virada de 2026', 62, 46);
+        pdf.setFont('helvetica', 'normal'); pdf.setFontSize(11); pdf.text('Comitê Periferias com Lula · versão preliminar de ' + BUILD, 62, 56);
+        pdf.setTextColor(43, 37, 37); pdf.setFontSize(12);
+        pdf.text(pdf.splitTextToSize('Lula ' + fP(H26.v2p, 2) + ' × Flávio Bolsonaro ' + fP(H26.p2p, 2) + ' no 2º turno. Pela primeira vez desde 2002, quem ficou em segundo no 1º turno para Presidente venceu o 2º. Este documento conta onde, como e com quem a virada aconteceu.', larg), mg, 110);
+      }
+      if (sum) {
+        var ys = capa ? 140 : 24;
+        pdf.setTextColor(43, 37, 37); pdf.setFontSize(capa ? 11 : 16); pdf.setFont('helvetica', 'bold'); pdf.text('Sumário', mg, ys); pdf.setFont('helvetica', 'normal'); pdf.setFontSize(11);
+        partes.forEach(function (a, k) { pdf.text((a.n ? a.n + '. ' : '') + a.t, mg + 4, ys + 10 + k * 7); });
+      }
+      if (capa || sum) { pdf.setFontSize(8); pdf.setTextColor(110, 100, 97); pdf.text('Fontes: TSE (resultados oficiais e Dados Abertos) e IBGE. Detalhes em "Como foi feito".', mg, Hp - 12); }
+      var y = livre ? mg : Hp, pag = 1, i = 0, atual = null;
       function rodape() { pdf.setFontSize(8); pdf.setTextColor(110, 100, 97); pdf.text('A virada de 2026 · Comitê Periferias com Lula · ' + BUILD, mg, Hp - 7); pdf.text(String(pag), W - mg, Hp - 7, { align: 'right' }); }
+      // desenha a parte com as opções da peça (só quando muda) e devolve o quadro a fotografar
+      function peca(it) {
+        var chave = it.a + '|' + JSON.stringify(it.v);
+        if (chave !== atual) {
+          var desfaz = it.v ? aplicarVersao(it.v) : function () {};
+          try {
+            doc.innerHTML = '<section class="ato" data-doc="' + it.a + '">' + RENDER[it.a]() + '</section>';
+            montarMapas(doc);
+          } finally { desfaz(); }
+          atual = chave;
+        }
+        var el = blocosDoAto(doc.firstChild)[it.k];
+        if (el && it.v) {
+          var p = document.createElement('p'); p.className = 'rel-versao'; p.textContent = 'Versão: ' + resumoVersao(it.b, it.v);
+          var h3 = el.querySelector('h3'); if (h3) h3.parentNode.insertBefore(p, h3.nextSibling); else el.insertBefore(p, el.firstChild);
+          atual = null;   // o quadro ficou com a etiqueta: a próxima peça desenha de novo
+        }
+        return el;
+      }
       function proximo() {
-        if (i >= blocos.length) {
-          rodape();
-          if (/[?&]testepdf=1/.test(location.search)) { var pre = document.createElement('pre'); pre.id = 'pdf-teste'; pre.textContent = pdf.output('datauristring'); document.body.appendChild(pre); }
-          else pdf.save('a-virada-de-2026.pdf');
+        if (i >= plano.length) {
+          if (pag > 1 || capa || sum || y > mg) rodape();
+          if (/[?&]testepdf=1/.test(location.search)) { var pre = document.createElement('pre'); pre.id = 'pdf-teste'; pre.setAttribute('data-paginas', String(pdf.getNumberOfPages())); pre.textContent = pdf.output('datauristring'); document.body.appendChild(pre); }
+          else pdf.save(cfg ? 'a-virada-de-2026-personalizado.pdf' : 'a-virada-de-2026.pdf');
           fim(); return;
         }
-        var b = blocos[i++];
-        espera('Preparando o documento… ' + Math.round(100 * i / blocos.length) + '%');
-        return window.html2canvas(b.el, { scale: 2, backgroundColor: '#ffffff', logging: false, ignoreElements: soBloco(b.el) }).then(function (cv) {
+        var it = plano[i++], el = peca(it);
+        espera('Preparando o documento… ' + Math.round(100 * i / plano.length) + '%');
+        if (!el) return proximo();
+        return window.html2canvas(el, { scale: 2, backgroundColor: '#ffffff', logging: false, ignoreElements: soBloco(el) }).then(function (cv) {
           var h = cv.height / cv.width * larg;
-          if (b.nova || y + h > Hp - 14) { if (pag > 1 || y < Hp) rodape(); pdf.addPage(); pag++; y = mg; }
+          if (livre) livre = false;
+          else if (it.nova || y + h > Hp - 14) { if (pag > 1 || capa || sum || y > mg) rodape(); pdf.addPage(); pag++; y = mg; }
           if (h > Hp - 2 * mg - 8) { var hh = Hp - 2 * mg - 8, ww = cv.width / cv.height * hh; pdf.addImage(cv.toDataURL('image/jpeg', 0.9), 'JPEG', mg + (larg - ww) / 2, y, ww, hh); y += hh + 4; }
           else { pdf.addImage(cv.toDataURL('image/jpeg', 0.9), 'JPEG', mg, y, larg, h); y += h + 4; }
           return proximo();
         });
       }
-      function fim() { PDF_AND = false; DOC = false; doc.innerHTML = ''; st.m3 = salvo.m3; st.m3uf = salvo.m3uf; st.m4 = salvo.m4; document.documentElement.setAttribute('data-theme', temaAntes || 'light'); espera(''); render(); }
-      return proximo().catch(function (er) { fim(); alert('Não consegui gerar o documento: ' + er.message); });
+      function fim() { PDF_AND = false; DOC = false; REL_UF = ''; doc.innerHTML = ''; st.m3 = salvo.m3; st.m3uf = salvo.m3uf; st.m4 = salvo.m4; document.documentElement.setAttribute('data-theme', temaAntes || 'light'); espera(''); render(); }
+      return Promise.resolve().then(proximo).catch(function (er) { fim(); alert('Não consegui gerar o documento: ' + er.message); });
     }).catch(function (er) { PDF_AND = false; espera(''); alert(er.message); });
   }
   function baixarPlanilha() {
@@ -2725,6 +2994,14 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
       var c = document.querySelector('[data-cont="' + id + '"]'); if (c) { c.textContent = t.hasAttribute('data-tweet') ? t.value.length + '/280' : t.value.length + ' caracteres'; c.style.color = t.hasAttribute('data-tweet') && t.value.length > 280 ? 'var(--ruim)' : ''; }
     });
   }
+  // quadro enviado pelo painel A virada com as postagens já abertas (outra aba do mesmo navegador): a caixa de
+  // recebidos aparece na hora; se a pessoa está digitando, só avisa (redesenhar apagaria o que está sendo escrito)
+  if (MODO_POST) addEventListener('storage', function (e) {
+    if (e.key !== 'virada-envios' || !e.newValue || (e.oldValue || '').length >= e.newValue.length) return;   // só quando chega um novo
+    var a = document.activeElement, digitando = a && /^(INPUT|TEXTAREA)$/.test(a.tagName) && $('principal').contains(a);
+    if (stp.aba === 'c' && !digitando) { renderPost(); avisoRapido('<b>Chegou um quadro do painel A virada.</b> Está em "Recebidos do painel A virada", no alto desta aba.'); }
+    else avisoRapido('<b>Chegou um quadro do painel A virada.</b> Veja na aba Carrosséis, em "Recebidos do painel A virada".');
+  });
   // teste/entrega: ?exportar=1 gera todas as imagens e as deixa na página (o Python salva numa pasta)
   function exportarTudo() {
     var lista = [];
@@ -2757,7 +3034,7 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
     render();
     if (/[?&]testepdf=1/.test(location.search)) setTimeout(baixarPdf, 300);
   }
-  window.VIRADA = { st: st, render: render, D: D, fi: { doElemento: fiDoElemento, compor: fiCompor, tamanho: fiTamanho, medidas: fiMedidas } };
+  window.VIRADA = { st: st, render: render, D: D, pdf: function (cfg) { baixarPdf(cfg); }, rel: { catalogo: catalogoRel, abrir: abrirRel, enderecos: enderecosPostagens }, fi: { doElemento: fiDoElemento, compor: fiCompor, tamanho: fiTamanho, medidas: fiMedidas } };
 })();
 </script>
 </body>
