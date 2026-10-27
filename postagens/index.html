@@ -99,6 +99,7 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
 .mapa-zoom button[data-camacao]{font-size:.62rem;font-weight:800;letter-spacing:-.01em}
 /* camadas e rótulos dos mapas (painel por cima do mapa; vale para todos os mapas e para as imagens) */
 .cam-painel{position:absolute;top:10px;left:10px;z-index:6;width:300px;max-width:calc(100% - 70px);max-height:calc(100% - 20px);overflow:auto;touch-action:pan-y;background:var(--card);color:var(--txt);border:1px solid var(--linha);border-radius:14px;padding:10px 12px;box-shadow:0 6px 24px rgba(0,0,0,.22);font-size:.85rem}
+.cam-sel{width:100%;padding:6px 8px;border:1px solid var(--linha);border-radius:8px;background:var(--card);color:var(--txt);font:inherit;margin-bottom:4px}
 .cam-painel .cam-cab{display:flex;justify-content:space-between;align-items:center;gap:8px;font-family:'Montserrat',sans-serif}
 .cam-painel .cam-cab button{width:36px;height:36px;border-radius:10px;border:1px solid var(--linha);background:var(--card);color:var(--txt);font-size:1.1rem}
 .cam-painel .cam-sec{margin:10px 0 4px;font-weight:800;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:var(--marca)}
@@ -224,6 +225,25 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
 .barra i{display:block;height:100%;background:var(--marca);border-radius:5px}
 .rodape{display:flex;align-items:center;justify-content:center;gap:10px;padding:18px 24px 28px;color:var(--sub);font-size:.78rem;text-align:center}
 .rodape .estrela{width:16px;height:16px;fill:var(--marca)}
+.env-sec{font-weight:800;margin:4px 0 8px}
+.env-sub{font-weight:700;margin:12px 0 6px;font-size:.92rem}
+.env-vis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:8px}
+.env-op{display:flex;flex-direction:column;gap:6px;border:2px solid var(--linha);border-radius:12px;padding:8px;cursor:pointer;font-size:.84rem}
+.env-op.on{border-color:var(--marca)}
+.env-op input{align-self:flex-start}
+.env-thumb{height:96px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--bg);border-radius:8px}
+.env-thumb svg,.env-thumb img{max-width:100%;max-height:96px;width:auto;height:auto}
+.env-linha{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:6px 0}
+.env-chk{display:flex;gap:6px;align-items:baseline;padding:3px 0;font-size:.88rem}
+.env-num b{font-family:'Montserrat',sans-serif;color:var(--marca);white-space:nowrap}
+.env-dest{display:grid;gap:2px}
+.env-busca{width:100%;padding:8px 10px;border:1px solid var(--linha);border-radius:10px;font:inherit;background:var(--card);color:var(--txt)}
+.env-lista{max-height:220px;overflow:auto;border:1px solid var(--linha2);border-radius:10px;padding:4px 10px;margin-top:6px}
+.env-lista small{color:var(--sub);margin-left:auto}
+.env-prev{border:1px solid var(--linha2);border-radius:10px;padding:6px;margin:4px 0 8px}
+.env-cams{display:grid;gap:8px;margin:8px 0}
+.env-cam{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--neutro-bg);font-size:.86rem}
+.env-cam b{width:100%}
 .rel-fundo{position:fixed;inset:0;z-index:4200;background:rgba(20,10,10,.5);display:flex;align-items:center;justify-content:center;padding:16px}
 .rel-caixa{background:var(--card);color:var(--txt);border-radius:18px;width:min(760px,100%);max-height:calc(100dvh - 32px);display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.3)}
 .rel-topo{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 8px;border-bottom:1px solid var(--linha)}
@@ -340,7 +360,7 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
 <script>
 (function () {
   'use strict';
-  var BUILD = '27/10/2026 07:17';
+  var BUILD = '27/10/2026 08:07';
   var D = JSON.parse(document.getElementById('dados').textContent);
   var V = D.v, M = V.mun, N = M.cod.length;
   var NF = new Intl.NumberFormat('pt-BR');
@@ -558,10 +578,12 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
   // mapa próprio em canvas (municípios), com arrastar, aproximar e dica
   // ======================================================================
   var GEO = null;   // {paths: [Path2D], bbox: [[x0,y0,x1,y1]], uf: {UF: Path2D}, lim}
-  var KX = Math.cos(-15 * Math.PI / 180);
+  // coordenadas do "mundo" do OpenStreetMap (0 a 256 no zoom 0, Mercator): todos os mapas usam, e o mapa de fundo encaixa
+  function PX(lon) { return (lon + 180) / 360 * 256; }
+  function PY(lat) { var f = lat * Math.PI / 180; return (1 - Math.log(Math.tan(f) + 1 / Math.cos(f)) / Math.PI) / 2 * 256; }
   function caminho(g, bb) {
-    var p = new Path2D(), polys = g.type === 'Polygon' ? [g.coordinates] : g.coordinates, k = KX;
-    polys.forEach(function (pl) { pl.forEach(function (anel) { anel.forEach(function (c, j) { var x = c[0] * k, y = -c[1]; if (bb) { if (x < bb[0]) bb[0] = x; if (y < bb[1]) bb[1] = y; if (x > bb[2]) bb[2] = x; if (y > bb[3]) bb[3] = y; } if (j) p.lineTo(x, y); else p.moveTo(x, y); }); p.closePath(); }); });
+    var p = new Path2D(), polys = g.type === 'Polygon' ? [g.coordinates] : g.coordinates;
+    polys.forEach(function (pl) { pl.forEach(function (anel) { anel.forEach(function (c, j) { var x = PX(c[0]), y = PY(c[1]); if (bb) { if (x < bb[0]) bb[0] = x; if (y < bb[1]) bb[1] = y; if (x > bb[2]) bb[2] = x; if (y > bb[3]) bb[3] = y; } if (j) p.lineTo(x, y); else p.moveTo(x, y); }); p.closePath(); }); });
     return p;
   }
   function preparaGeo() {
@@ -579,8 +601,43 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
     GEO = { paths: paths, bbox: bbox, uf: uf, lim: lim };
     return GEO;
   }
+  // as imagens são sempre as do OpenStreetMap; "claro" = as mesmas em tons de cinza e clareadas (as cores dos dados aparecem melhor)
+  var FUNDOS = [['', 'Sem mapa de fundo'], ['claro', 'OpenStreetMap claro'], ['osm', 'OpenStreetMap colorido']];
+  var TILES_V = {}, TILES_V_PEND = 0;
+  function tileV(estilo, z, x, y, aoCarregar) {
+    var k = z + '/' + x + '/' + y, t = TILES_V[k];
+    if (t) { if (!t._ok && !t._erro) t._fila.push(aoCarregar); return t; }
+    t = new Image(); t.crossOrigin = 'anonymous'; t._ok = false; t._fila = [aoCarregar]; TILES_V_PEND++;
+    t.onload = function () { t._ok = true; TILES_V_PEND--; t._fila.forEach(function (f) { f(); }); t._fila = []; };
+    t.onerror = function () { t._erro = true; TILES_V_PEND--; };
+    t.src = 'https://tile.openstreetmap.org/' + k + '.png';
+    return (TILES_V[k] = t);
+  }
+  // desenha as imagens de fundo que cobrem a tela (t = [escala, x0, y0] do mapa) e o crédito do OpenStreetMap
+  function desenharFundo(ctx, t, w, h, dpr, estilo, mapa) {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var s = t[0], z = Math.max(0, Math.min(18, Math.round(Math.log2(s)))), ts = 256 * s / Math.pow(2, z), mx = Math.pow(2, z), n = 0;
+    var x0 = Math.floor(-t[1] / ts), x1 = Math.floor((w - t[1]) / ts), y0 = Math.floor(-t[2] / ts), y1 = Math.floor((h - t[2]) / ts);
+    if (estilo === 'claro') ctx.filter = 'grayscale(1) contrast(.85) brightness(1.08)';
+    for (var tx = x0; tx <= x1; tx++) for (var ty = y0; ty <= y1; ty++) {
+      if (ty < 0 || ty >= mx || ++n > 240) continue;
+      var im = tileV(estilo, z, ((tx % mx) + mx) % mx, ty, function () { if (mapa && mapa.agendar) mapa.agendar(); });
+      if (im._ok) ctx.drawImage(im, tx * ts + t[1], ty * ts + t[2], ts + 0.6, ts + 0.6);
+    }
+    ctx.filter = 'none';
+    if (estilo === 'claro') { ctx.fillStyle = 'rgba(255,255,255,.38)'; ctx.fillRect(0, 0, w, h); }
+  }
+  function creditoFundo(ctx, w, h, dpr, estilo) {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var txt = '© colaboradores do OpenStreetMap'; ctx.font = "10px 'Public Sans', sans-serif";
+    var tw = ctx.measureText(txt).width + 8;
+    ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.fillRect(w - tw, h - 15, tw, 15); ctx.fillStyle = '#4a4444'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(txt, w - tw + 4, h - 7.5);
+  }
+  // espera as imagens de fundo (PDF, imagem do quadro, envio para as postagens): até 8 s
+  function fundosProntos() { return new Promise(function (ok) { var t0 = Date.now(); (function ver() { if (TILES_V_PEND <= 0 || Date.now() - t0 > 8000) ok(); else setTimeout(ver, 150); })(); }); }
+  function redesenharEm(raiz) { Object.keys(MAPAS).forEach(function (k) { var m = MAPAS[k]; if (m.cv && raiz.contains(m.cv)) m.desenhar(); }); }
   var MAPAS = {};
-  // opts: {cor(i) -> cor | null, dica(i) -> html, uf: 'SP' | null (recorte), alt}
+  // opts: {cor(i) -> cor | null, dica(i) -> html, uf: 'SP' | null (recorte), alt, cam (camadas fixas, ex.: nas postagens)}
   function Mapa(id, opts) {
     if (DOC && REL_UF && !opts.estatico) opts.uf = REL_UF;   // versão extra do documento com recorte de um estado
     this.id = id; this.o = opts; this.z = 1; this.dx = 0; this.dy = 0;
@@ -605,6 +662,7 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
     this.cv.addEventListener('wheel', function (e) { e.preventDefault(); self.zoom(e.deltaY < 0 ? 1.25 : 0.8, e); }, { passive: false });
     caixa.querySelectorAll('[data-zoom]').forEach(function (bt) { bt.addEventListener('click', function () { var z = bt.getAttribute('data-zoom'); if (z === '0') { self.z = 1; self.dx = 0; self.dy = 0; self.desenhar(); } else self.zoom(z === '+' ? 1.5 : 1 / 1.5); }); });
   };
+  Mapa.prototype.agendar = function () { var self = this; if (this._ag) return; this._ag = (window.requestAnimationFrame || setTimeout)(function () { self._ag = null; if (self.cv && (self.cv.isConnected || DOC)) self.desenhar(); }); };
   Mapa.prototype.limites = function () {
     var g = GEO, u = this.o.uf;
     if (!u) return g.lim;
@@ -633,22 +691,26 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
     ctx.setTransform(dpr * t[0], 0, 0, dpr * t[0], dpr * t[1], dpr * t[2]);
-    var vazio = css('--linha'), lw = 0.6 / t[0], cam = this.o.estatico ? null : st.cam, fundo = cam && cam.opac < 1 ? css('--bg') : null, cache = {};
+    var vazio = css('--linha'), lw = 0.6 / t[0], cam = this.o.cam || (this.o.estatico ? null : st.cam), comFundo = !!(cam && cam.fundo), fundo = cam && cam.opac < 1 && !comFundo ? css('--bg') : null, cache = {};
+    if (comFundo) { desenharFundo(ctx, t, w, h, dpr, cam.fundo, this); ctx.setTransform(dpr * t[0], 0, 0, dpr * t[0], dpr * t[1], dpr * t[2]); ctx.globalAlpha = Math.min(cam.opac, 0.82); }
     for (var i = 0; i < N; i++) {
       if (!g.paths[i] || (u && M.uf[i] !== u)) continue;
-      var c = this.o.cor(i) || vazio;
+      var c = this.o.cor(i);
+      if (!c) { if (comFundo) continue; c = vazio; }
       if (fundo) c = cache[c] || (cache[c] = misturarCor(c, fundo, 1 - cam.opac));   // opacidade = cor clareada (sem frestas)
       ctx.fillStyle = c; ctx.strokeStyle = c; ctx.lineWidth = lw;
       ctx.fill(g.paths[i]); ctx.stroke(g.paths[i]);   // traço da própria cor: sem frestas entre vizinhos
     }
-    if (cam) desenharContornos(ctx, t, u);
+    ctx.globalAlpha = 1;
+    if (cam) desenharContornos(ctx, t, u, cam);
     else {
       ctx.strokeStyle = DOC ? '#ffffff' : css('--card'); ctx.lineWidth = 1.1 / t[0];
       Object.keys(g.uf).forEach(function (k) { if (!u || k === u) ctx.stroke(g.uf[k]); });
     }
     if (this.sel != null && g.paths[this.sel]) { ctx.setLineDash([4 / t[0], 3 / t[0]]); ctx.strokeStyle = '#3d4752'; ctx.lineWidth = 1.6 / t[0]; ctx.stroke(g.paths[this.sel]); ctx.setLineDash([]); }
     this.t = t;
-    if (cam) desenharRotulos(ctx, t, u, w, h, dpr);
+    if (cam) desenharRotulos(ctx, t, u, w, h, dpr, cam);
+    if (comFundo) creditoFundo(ctx, w, h, dpr, cam.fundo);
   };
   Mapa.prototype.achar = function (e) {
     var r = this.cv.getBoundingClientRect(), t = this.t; if (!t) return null;
@@ -702,7 +764,7 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
   function camPadraoV() {
     var b = {}, r = {};
     CAMADAS_V.forEach(function (c) { b[c[0]] = { on: c[0] === 'uf', cor: CAM_PADRAO_V[c[0]][0], esp: CAM_PADRAO_V[c[0]][1] }; r[c[0]] = false; });
-    return { b: b, r: r, fonte: { tam: 12, cor: '#2b2525' }, opac: 1 };
+    return { b: b, r: r, fonte: { tam: 12, cor: '#2b2525' }, opac: 1, fundo: '' };
   }
   function lerCam() {
     var c = camPadraoV();
@@ -712,11 +774,33 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
         CAMADAS_V.forEach(function (k) { var n = k[0]; if (x.b[n]) c.b[n] = { on: !!x.b[n].on, cor: typeof x.b[n].cor === 'string' ? x.b[n].cor : c.b[n].cor, esp: +x.b[n].esp || c.b[n].esp }; if (x.r) c.r[n] = !!x.r[n]; });
         if (x.fonte) c.fonte = { tam: +x.fonte.tam || 12, cor: x.fonte.cor || c.fonte.cor };
         if (x.opac) c.opac = Math.max(0.3, Math.min(1, +x.opac));
+        if (FUNDOS.some(function (f) { return f[0] === x.fundo; })) c.fundo = x.fundo;
       }
     } catch (e) { /* sem armazenamento */ }
     return c;
   }
   function guardarCam() { try { localStorage.setItem('vira-camadas', JSON.stringify(st.cam)); } catch (e) { /* sem armazenamento */ } }
+  // camadas dos mapas das regiões metropolitanas (bairros, distritos, zonas, locais): fundo do OpenStreetMap ligado
+  function camPadraoRM() { return { fundo: 'claro', opac: 0.78, bmun: true, buni: true, rmun: false, runi: false }; }
+  function lerCamRM() {
+    var c = camPadraoRM();
+    try { var x = JSON.parse(localStorage.getItem('vira-camadas-rm') || 'null'); if (x) Object.keys(c).forEach(function (k) { if (x[k] != null && typeof x[k] === typeof c[k]) c[k] = x[k]; }); } catch (e) { /* sem armazenamento */ }
+    if (!FUNDOS.some(function (f) { return f[0] === c.fundo; })) c.fundo = 'claro';
+    return c;
+  }
+  function guardarCamRM() { try { localStorage.setItem('vira-camadas-rm', JSON.stringify(st.camRM)); } catch (e) { /* sem armazenamento */ } }
+  function optsFundo(v) { return FUNDOS.map(function (f) { return '<option value="' + f[0] + '"' + (f[0] === v ? ' selected' : '') + '>' + f[1] + '</option>'; }).join(''); }
+  function htmlCamadasRM() {
+    var c = st.camRM, chk = function (k, t) { return '<div class="cam-lin"><label class="cam-chk"><input type="checkbox" data-camc="' + k + '"' + (c[k] ? ' checked' : '') + '>' + t + '</label></div>'; };
+    return '<div class="cam-cab"><b>Camadas e rótulos</b><button type="button" data-camacao="fechar" aria-label="Fechar">×</button></div>' +
+      '<p class="cam-sec">Mapa de fundo</p><select class="cam-sel" data-camc="fundo" aria-label="Mapa de fundo">' + optsFundo(c.fundo) + '</select>' +
+      '<p class="cam-sec">Contornos</p>' + chk('bmun', 'Municípios') + chk('buni', 'Bairros, distritos ou zonas (cor do próprio pedaço, mais escura)') +
+      '<p class="cam-sec">Nomes no mapa</p>' + chk('rmun', 'Municípios') + chk('runi', 'Bairros, distritos ou zonas') +
+      '<p class="cam-nota">Nomes que se atropelam somem; aproxime o mapa para ver mais.</p>' +
+      '<p class="cam-sec">Cores</p><div class="cam-lin"><span>Opacidade</span><input type="range" min="0.3" max="1" step="0.05" data-camc="opac" value="' + c.opac + '" aria-label="Opacidade das cores"></div>' +
+      '<p class="cam-nota">Vale para os mapas das regiões metropolitanas, para as imagens, as postagens e o PDF.</p>' +
+      '<button type="button" class="cam-pad" data-camacao="padrao">Restaurar o padrão</button>';
+  }
   function misturarCor(c, d, f) {   // c clareada na direção de d (cores #rrggbb)
     var a = /^#([0-9a-f]{6})$/i.exec(c), b = /^#([0-9a-f]{6})$/i.exec(d);
     if (!a || !b) return c;
@@ -748,32 +832,32 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
     var polys = g.type === 'Polygon' ? [g.coordinates] : g.coordinates, mel = null, mA = 0;
     polys.forEach(function (pl) {
       var r = pl[0], A = 0, cx = 0, cy = 0;
-      for (var j = 0, n = r.length - 1; j < n; j++) { var x0 = r[j][0] * KX, y0 = -r[j][1], x1 = r[j + 1][0] * KX, y1 = -r[j + 1][1], f = x0 * y1 - x1 * y0; A += f; cx += (x0 + x1) * f; cy += (y0 + y1) * f; }
+      for (var j = 0, n = r.length - 1; j < n; j++) { var x0 = PX(r[j][0]), y0 = PY(r[j][1]), x1 = PX(r[j + 1][0]), y1 = PY(r[j + 1][1]), f = x0 * y1 - x1 * y0; A += f; cx += (x0 + x1) * f; cy += (y0 + y1) * f; }
       if (Math.abs(A) > mA) { mA = Math.abs(A); mel = { r: r, x: cx / (3 * A), y: cy / (3 * A) }; }
     });
     if (!mel) return null;
-    function dentro(x, y) { var r = mel.r, d = false; for (var j = 0, k = r.length - 1; j < r.length; k = j++) { var xi = r[j][0] * KX, yi = -r[j][1], xk = r[k][0] * KX, yk = -r[k][1]; if ((yi > y) !== (yk > y) && x < (xk - xi) * (y - yi) / (yk - yi) + xi) d = !d; } return d; }
+    function dentro(x, y) { var r = mel.r, d = false; for (var j = 0, k = r.length - 1; j < r.length; k = j++) { var xi = PX(r[j][0]), yi = PY(r[j][1]), xk = PX(r[k][0]), yk = PY(r[k][1]); if ((yi > y) !== (yk > y) && x < (xk - xi) * (y - yi) / (yk - yi) + xi) d = !d; } return d; }
     if (dentro(mel.x, mel.y)) return [mel.x, mel.y];
-    var bb = [1e9, 1e9, -1e9, -1e9]; mel.r.forEach(function (c) { var x = c[0] * KX, y = -c[1]; bb = [Math.min(bb[0], x), Math.min(bb[1], y), Math.max(bb[2], x), Math.max(bb[3], y)]; });
+    var bb = [1e9, 1e9, -1e9, -1e9]; mel.r.forEach(function (c) { var x = PX(c[0]), y = PY(c[1]); bb = [Math.min(bb[0], x), Math.min(bb[1], y), Math.max(bb[2], x), Math.max(bb[3], y)]; });
     var best = null, bd = 1e18;
     for (var a = 1; a < 12; a++) for (var b = 1; b < 12; b++) { var x = bb[0] + (bb[2] - bb[0]) * a / 12, y = bb[1] + (bb[3] - bb[1]) * b / 12; if (!dentro(x, y)) continue; var dd = (x - mel.x) * (x - mel.x) + (y - mel.y) * (y - mel.y); if (dd < bd) { bd = dd; best = [x, y]; } }
     return best || [mel.x, mel.y];
   }
   function noRecorte(L, nv, k, u) { return !u || (nv === 'uf' ? k === u : !!(L.ufs[k] || {})[u]); }
-  function desenharContornos(ctx, t, u) {
-    var c = st.cam, g = GEO;
+  function desenharContornos(ctx, t, u, cam) {
+    var c = cam || st.cam, g = GEO;
     ctx.save();
     if (u && g.uf[u]) ctx.clip(g.uf[u]);   // recorte de um estado: as RMs e regiões que passam da divisa ficam cortadas
     ['mun', 'ime', 'int', 'rm', 'uf', 'reg'].forEach(function (nv) {   // do mais fino ao mais grosso
       var s = c.b[nv]; if (!s.on) return;
       var L = nivelGeo(nv);
-      ctx.strokeStyle = s.cor || (DOC ? '#ffffff' : css('--card')); ctx.lineWidth = s.esp / t[0]; ctx.lineJoin = 'round';
+      ctx.strokeStyle = s.cor || (c.fundo ? '#ffffff' : DOC ? '#ffffff' : css('--card')); ctx.lineWidth = s.esp / t[0]; ctx.lineJoin = 'round';
       L.lst.forEach(function (f) { if (noRecorte(L, nv, f.k, u)) ctx.stroke(f.p); });
     });
     ctx.restore();
   }
-  function desenharRotulos(ctx, t, u, w, h, dpr) {
-    var c = st.cam, caixas = [], n = 0, halo = DOC ? '#ffffff' : css('--card');
+  function desenharRotulos(ctx, t, u, w, h, dpr, cam) {
+    var c = cam || st.cam, caixas = [], n = 0, halo = DOC ? '#ffffff' : css('--card');
     if (!CAMADAS_V.some(function (x) { return c.r[x[0]]; })) return;
     ctx.save();
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -800,6 +884,7 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
   function htmlCamadasV() {
     var c = st.cam;
     return '<div class="cam-cab"><b>Camadas e rótulos</b><button type="button" data-camacao="fechar" aria-label="Fechar">×</button></div>' +
+      '<p class="cam-sec">Mapa de fundo</p><select class="cam-sel" data-camc="fundo" aria-label="Mapa de fundo">' + optsFundo(c.fundo) + '</select>' +
       '<p class="cam-sec">Contornos</p>' + CAMADAS_V.map(function (x) {
         var nv = x[0], s = c.b[nv];
         return '<div class="cam-lin"><label class="cam-chk"><input type="checkbox" data-camc="b" data-n="' + nv + '"' + (s.on ? ' checked' : '') + '>' + x[1] + '</label>' +
@@ -816,15 +901,15 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
       '<p class="cam-nota">Vale para todos os mapas do painel, para as imagens e para o PDF.</p>' +
       '<button type="button" class="cam-pad" data-camacao="padrao">Restaurar o padrão</button>';
   }
-  function painelCam(caixa, id) {
+  function painelCam(caixa, mapa) {
     var p = caixa.querySelector('.cam-painel');
-    if (CAM_ABERTO !== id) { if (p) p.remove(); return; }
+    if (CAM_ABERTO !== mapa.id) { if (p) p.remove(); return; }
     if (!p) { p = document.createElement('div'); p.className = 'cam-painel'; caixa.appendChild(p); }
-    var rola = p.scrollTop; p.innerHTML = htmlCamadasV(); p.scrollTop = rola;
+    var rola = p.scrollTop; p.innerHTML = mapa instanceof MapaRM ? htmlCamadasRM() : htmlCamadasV(); p.scrollTop = rola;
   }
   function redesenharMapas() { Object.keys(MAPAS).forEach(function (k) { var m = MAPAS[k]; if (m.caixa && m.caixa.isConnected && !m.o.estatico) m.desenhar(); }); }
   function ligarCamadas(mapa, caixa) {
-    painelCam(caixa, mapa.id);
+    painelCam(caixa, mapa);
     if (caixa._cam) return;
     caixa._cam = true;
     caixa.addEventListener('click', function (e) {
@@ -834,12 +919,18 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
         CAM_ABERTO = CAM_ABERTO === mapa.id ? null : mapa.id;
         document.querySelectorAll('.cam-painel').forEach(function (x) { if (x.parentNode !== caixa) x.remove(); });
       } else if (a === 'fechar') CAM_ABERTO = null;
-      else if (a === 'padrao') { st.cam = camPadraoV(); guardarCam(); redesenharMapas(); }
-      painelCam(caixa, mapa.id);
+      else if (a === 'padrao') { if (mapa instanceof MapaRM) { st.camRM = camPadraoRM(); guardarCamRM(); } else { st.cam = camPadraoV(); guardarCam(); } redesenharMapas(); }
+      painelCam(caixa, mapa);
     });
     function mudar(e, aoVivo) {
       var t = e.target.closest('[data-camc]'); if (!t) return;
-      if (aoVivo && t.type === 'checkbox') return;
+      if (aoVivo && (t.type === 'checkbox' || t.tagName === 'SELECT')) return;
+      if (mapa instanceof MapaRM) {
+        var cr = st.camRM, k = t.getAttribute('data-camc');
+        if (t.type === 'checkbox') cr[k] = t.checked; else if (k === 'opac') cr.opac = +t.value; else if (k === 'fundo') cr.fundo = t.value;
+        if (!aoVivo) guardarCamRM();
+        redesenharMapas(); return;
+      }
       var c = st.cam, n = t.getAttribute('data-n'), campo = t.getAttribute('data-camc'), v = t.value;
       if (campo === 'b') c.b[n].on = t.checked;
       else if (campo === 'cor') c.b[n].cor = v;
@@ -848,9 +939,10 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
       else if (campo === 'fcor') c.fonte.cor = v;
       else if (campo === 'ftam') c.fonte.tam = +v;
       else if (campo === 'opac') c.opac = +v;
+      else if (campo === 'fundo') c.fundo = v;
       if (!aoVivo) guardarCam();
       redesenharMapas();
-      if (campo === 'b' && !aoVivo) painelCam(caixa, mapa.id);   // mostra cor e espessura do nível ligado
+      if (campo === 'b' && !aoVivo) painelCam(caixa, mapa);   // mostra cor e espessura do nível ligado
     }
     caixa.addEventListener('input', function (e) { mudar(e, true); });
     caixa.addEventListener('change', function (e) { mudar(e, false); });
@@ -885,6 +977,7 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
   var st = { ato: (location.hash || '#a1').slice(1), m3: 'venc26', m3uf: '', m4: 'cat', rk: 'saldo_l', v5: 'outros1', ordEst: 'l2p', ordInv: true, md: 'd', cmpT: '1t' };
   if (!ATOS.some(function (a) { return a.id === st.ato; })) st.ato = 'a1';
   st.cam = lerCam();
+  st.camRM = lerCamRM();
   try { var tm = localStorage.getItem('vira-tema'); if (tm === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (e) { /* sem armazenamento */ }
 
   // ======================================================================
@@ -1171,7 +1264,17 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
     var ufs = Object.keys(V.nomes.uf).sort().map(function (u) { return '<option value="' + u + '"' + (st.m3uf === u ? ' selected' : '') + '>' + esc(V.nomes.uf[u]) + '</option>'; }).join('');
     MAPAS.m3 = new Mapa('m3', { cor: function (i) { return M3[st.m3].cor(i); }, dica: dicaM3, uf: st.m3uf || null });
     var nViro = st.m3 === 'viro_l' || st.m3 === 'viro_f';
-    html += '<section class="cartao"><h3>Quem venceu em cada município — e quanto mudou</h3><p class="sub">Arraste e use a roda do mouse (ou os botões) para aproximar. Passe o mouse (ou toque) para ver o município. Em "O que mostrar", escolha também o <b>Virômetro</b>: quanto cada candidato andou, do 1º turno até os votos do mesmo lado em 2022.</p>' +
+    DQ.m3 = function () {
+      var it = [];
+      for (var i = 0; i < N; i++) { if (!M.apt[i] || (st.m3uf && M.uf[i] !== st.m3uf)) continue; it.push({ nome: nomeMun(i), v: { l2p: share(M.l2[i], M.f2[i]), sw: swing(i), sw22: swing22(i), saldo: (M.l2[i] - M.f2[i]) - (M.l1[i] - M.f1[i]), aptos: M.apt[i] } }); }
+      return { nome: 'municípios' + (st.m3uf ? ' de ' + (V.nomes.uf[st.m3uf] || st.m3uf) : ' do Brasil'), itens: it, medidas: [
+        { k: 'saldo', nome: 'Votos de diferença ganhos por Lula do 1º para o 2º turno', fmt: function (v) { return fV(v); }, ref: 0 },
+        { k: 'l2p', nome: '% de Lula no 2º turno (entre os dois)', fmt: function (v) { return fP(v); }, ref: 50 },
+        { k: 'sw', nome: 'Mudança do 1º para o 2º turno (p.p.)', fmt: function (v) { return fD(v) + ' p.p.'; }, ref: 0 },
+        { k: 'sw22', nome: 'Mudança em relação a 2022 (p.p.)', fmt: function (v) { return fD(v) + ' p.p.'; }, ref: 0 },
+        { k: 'aptos', nome: 'Eleitores', fmt: function (v) { return fN(v); }, ref: null }] };
+    };
+    html += '<section class="cartao" data-dq="m3"><h3>Quem venceu em cada município — e quanto mudou</h3><p class="sub">Arraste e use a roda do mouse (ou os botões) para aproximar. Passe o mouse (ou toque) para ver o município. Em "O que mostrar", escolha também o <b>Virômetro</b>: quanto cada candidato andou, do 1º turno até os votos do mesmo lado em 2022.</p>' +
       '<div class="ctl"><select class="sel" data-sel="m3" aria-label="O que o mapa mostra">' + opts + '</select><select class="sel" data-sel="m3uf" aria-label="Estado"><option value="">Brasil inteiro</option>' + ufs + '</select>' +
       '<div class="seg"><button data-m3="viro_l" aria-pressed="' + (st.m3 === 'viro_l') + '">Virômetro Lula</button><button data-m3="viro_f" aria-pressed="' + (st.m3 === 'viro_f') + '">Virômetro Flávio</button><button data-m3="venc26" aria-pressed="' + (st.m3 === 'venc26') + '">Resultado</button></div></div>' +
       htmlMapa('m3') + legM3(st.m3) + '<p class="fonte-g">' + (nViro ? 'Virômetro: meta = votos do mesmo lado no 2º turno de 2022 (Lula ou Bolsonaro); caminho = (votos no 2º turno − votos no 1º) ÷ (meta − votos no 1º), como no painel ao vivo. ' : 'Cores: vermelho = lado de Lula (ou do PT), azul = lado adversário; tom mais forte = vantagem maior. "Mudança" = % de Lula entre os dois finalistas no 2º turno menos o mesmo no 1º turno (ou em 2022). ') + 'Fonte: TSE.</p></section>';
@@ -1326,7 +1429,7 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
     if (RMx && RMx.grupos) {
       RMD = RMx;
       var pR = medRM(clsRM('BR', PER_RM)), cR = medRM(clsRM('BR', CEN_RM)), nR = Object.keys(RMx.grupos).length;
-      var htmlN = cab('a6', 'Nas ' + nR + ' regiões metropolitanas estudadas, <b>as periferias deram a Lula ' + fP(pR.l2p, 0) + ' dos votos válidos no 2º turno, contra ' + fP(cR.l2p, 0) + ' nas áreas centrais</b>, e ' + (pR.av > cR.av ? 'foram também onde ele mais cresceu entre os turnos (' + fD(pR.av) + ' p.p., contra ' + fD(cR.av) + ')' : 'cresceram entre os turnos ' + fD(pR.av) + ' p.p. (áreas centrais: ' + fD(cR.av) + ')') + '. Mas não existe "a periferia" no singular: o tamanho da diferença muda de região para região, de cidade para cidade e de bairro para bairro.') + htmlRM();
+      var htmlN = cab('a6', 'Nas ' + nR + ' regiões metropolitanas estudadas, <b>as periferias deram a Lula ' + fP(pR.l2p, 0) + ' dos votos válidos no 2º turno, contra ' + fP(cR.l2p, 0) + ' nas áreas centrais</b>, e ' + (pR.av > cR.av ? 'foram também onde ele mais cresceu entre os turnos (' + fD(pR.av) + ' p.p., contra ' + fD(cR.av) + ')' : 'cresceram entre os turnos ' + fD(pR.av) + ' p.p. (áreas centrais: ' + fD(cR.av) + ')') + '. Mas não existe "a periferia" no singular: o tamanho da diferença muda de região para região, de cidade para cidade e de bairro para bairro.') + htmlMF() + htmlRM();
       if (!P) return htmlN;
       return htmlN + '<h3 class="sub-ato">Outro jeito de ver: a tipologia intraurbana do IBGE (Censo 2010)</h3>' + ato6Tipologia(b, P, true);
     }
@@ -1438,35 +1541,45 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
   var GEO_RM = {};
   function geoRM(g, nivel) {
     var ch = g + '|' + nivel; if (GEO_RM[ch]) return GEO_RM[ch];
-    var G = RMD.grupos[g], kx = Math.cos((G.bb[1] + G.bb[3]) / 2 * Math.PI / 180), U = G.niveis[nivel];
-    var paths = [], bbox = [], lim = [1e9, 1e9, -1e9, -1e9];
+    var G = RMD.grupos[g], o0 = G.o[0], o1 = G.o[1], U = G.niveis[nivel];
+    var paths = [], bbox = [], pts = [], lim = [1e9, 1e9, -1e9, -1e9];
     U.geo.forEach(function (aneis) {
       if (aneis && !Array.isArray(aneis)) {   // contorno igual ao de um município ou distrito: reaproveitado
         var o = geoRM(g, aneis.r), b0 = o.bbox[aneis.k];
-        paths.push(o.paths[aneis.k]); bbox.push(b0);
+        paths.push(o.paths[aneis.k]); bbox.push(b0); pts.push(o.pts[aneis.k]);
         lim = [Math.min(lim[0], b0[0]), Math.min(lim[1], b0[1]), Math.max(lim[2], b0[2]), Math.max(lim[3], b0[3])];
         return;
       }
-      var p = new Path2D(), bb = [1e9, 1e9, -1e9, -1e9];
+      var p = new Path2D(), bb = [1e9, 1e9, -1e9, -1e9], mel = null, mA = 0;
       aneis.forEach(function (a) {
-        var x = 0, y = 0;
+        var x = 0, y = 0, A = 0, cx = 0, cy = 0, qx = null, qy = null;
         for (var k = 0; k < a.length; k += 2) {
           x += a[k]; y += a[k + 1];
-          var px = x * kx, py = -y;
+          var px = PX(o0 + x / 1e4), py = PY(o1 + y / 1e4);
+          if (qx != null) { var f = qx * py - px * qy; A += f; cx += (qx + px) * f; cy += (qy + py) * f; }
+          qx = px; qy = py;
           if (px < bb[0]) bb[0] = px; if (py < bb[1]) bb[1] = py; if (px > bb[2]) bb[2] = px; if (py > bb[3]) bb[3] = py;
           if (k) p.lineTo(px, py); else p.moveTo(px, py);
         }
         p.closePath();
+        if (Math.abs(A) > mA) { mA = Math.abs(A); mel = [cx / (3 * A), cy / (3 * A)]; }   // nome: no centro do maior pedaço
       });
-      paths.push(p); bbox.push(bb);
+      paths.push(p); bbox.push(bb); pts.push(mel || [(bb[0] + bb[2]) / 2, (bb[1] + bb[3]) / 2]);
       lim = [Math.min(lim[0], bb[0]), Math.min(lim[1], bb[1]), Math.max(lim[2], bb[2]), Math.max(lim[3], bb[3])];
     });
-    return (GEO_RM[ch] = { paths: paths, bbox: bbox, lim: lim, kx: kx });
+    return (GEO_RM[ch] = { paths: paths, bbox: bbox, lim: lim, pts: pts });
+  }
+  var PTS_RM = {};
+  function pontosRM(g) {   // locais de votação em coordenadas do mapa
+    if (PTS_RM[g]) return PTS_RM[g];
+    var G = RMD.grupos[g], L = G.locais;
+    return (PTS_RM[g] = { x: L.x.map(function (v) { return PX(G.o[0] + v / 1e4); }), y: L.y.map(function (v) { return PY(G.o[1] + v / 1e4); }) });
   }
   // opts: {g, nivel ('mun'|'zona'|'dist'|'area'|'loc'), cor(k), dica(k), base(k) (cor das áreas sob os pontos)}
   function MapaRM(id, opts) { this.id = id; this.o = opts; this.z = 1; this.dx = 0; this.dy = 0; }
   MapaRM.prototype.trans = Mapa.prototype.trans;
   MapaRM.prototype.zoom = Mapa.prototype.zoom;
+  MapaRM.prototype.agendar = Mapa.prototype.agendar;
   MapaRM.prototype.montar = function (caixa) {
     var self = this;
     this.caixa = caixa; this.cv = caixa.querySelector('canvas');
@@ -1475,6 +1588,7 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
     this.base = this.gm.lim;
     this.desenhar();
     if (DOC || this.o.estatico) return;
+    ligarCamadas(this, caixa);
     var arr = null;
     this.cv.addEventListener('pointerdown', function (e) { arr = { x: e.clientX, y: e.clientY, dx: self.dx, dy: self.dy }; self.cv.setPointerCapture(e.pointerId); });
     this.cv.addEventListener('pointermove', function (e) {
@@ -1487,49 +1601,70 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
     caixa.querySelectorAll('[data-zoom]').forEach(function (bt) { bt.addEventListener('click', function () { var z = bt.getAttribute('data-zoom'); if (z === '0') { self.z = 1; self.dx = 0; self.dy = 0; self.desenhar(); } else self.zoom(z === '+' ? 1.5 : 1 / 1.5); }); });
   };
   MapaRM.prototype.desenhar = function () {
-    var cv = this.cv, dpr = DOC ? 2 : (window.devicePixelRatio || 1), w = cv.clientWidth, h = cv.clientHeight;
+    var cv = this.cv, dpr = this.o.dpr || (DOC ? 2 : (window.devicePixelRatio || 1)), w = cv.clientWidth, h = cv.clientHeight;
     if (!w || !h) return;
     cv.width = w * dpr; cv.height = h * dpr;
-    var ctx = cv.getContext('2d'), t = this.trans(), o = this.o, ga = this.ga, gm = this.gm, vazio = css('--linha');
+    var ctx = cv.getContext('2d'), t = this.trans(), o = this.o, ga = this.ga, gm = this.gm, vazio = css('--linha'), cam = o.cam || st.camRM, comFundo = !!cam.fundo;
+    var bg = DOC ? '#ffffff' : css('--bg'), cache = {};
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+    if (comFundo) desenharFundo(ctx, t, w, h, dpr, cam.fundo, this);
     ctx.setTransform(dpr * t[0], 0, 0, dpr * t[0], dpr * t[1], dpr * t[2]);
-    var lw = 0.6 / t[0], pontos = o.nivel === 'loc';
+    var s = t[0], pontos = o.nivel === 'loc', alfa = comFundo ? cam.opac : 1;
     for (var k = 0; k < ga.paths.length; k++) {
-      var c = (pontos ? (o.base ? o.base(k) : null) : o.cor(k)) || vazio;
-      ctx.fillStyle = c; ctx.strokeStyle = c; ctx.lineWidth = lw;
-      ctx.fill(ga.paths[k], 'evenodd'); ctx.stroke(ga.paths[k]);
+      var c = pontos ? (comFundo ? null : (o.base ? o.base(k) : null)) : o.cor(k);
+      if (!c) { if (comFundo) continue; c = vazio; }
+      if (!comFundo && cam.opac < 1) c = cache[c] || (cache[c] = misturarCor(c, bg, 1 - cam.opac));
+      ctx.globalAlpha = alfa; ctx.fillStyle = c; ctx.fill(ga.paths[k], 'evenodd'); ctx.globalAlpha = 1;
+      // borda na cor do próprio pedaço, um pouco mais escura (sem contorno: traço da própria cor, sem frestas)
+      if (cam.buni && o.nivel !== 'mun') { ctx.strokeStyle = misturarCor(c, '#2b2525', 0.32); ctx.lineWidth = 0.7 / s; }
+      else { ctx.strokeStyle = comFundo ? misturarCor(c, '#2b2525', 0.2) : c; ctx.lineWidth = (comFundo ? 0.5 : 0.6) / s; }
+      ctx.stroke(ga.paths[k]);
     }
-    if (o.nivel !== 'mun') {   // divisas das unidades (finas) e dos municípios (mais grossas)
-      ctx.strokeStyle = DOC ? 'rgba(255,255,255,.75)' : css('--card'); ctx.lineWidth = 0.5 / t[0];
-      ga.paths.forEach(function (p) { ctx.stroke(p); });
-    }
-    ctx.strokeStyle = o.nivel === 'mun' ? (DOC ? '#ffffff' : css('--card')) : '#5b5050'; ctx.lineWidth = (o.nivel === 'mun' ? 1 : 1.1) / t[0];
-    gm.paths.forEach(function (p) { ctx.stroke(p); });
+    if (cam.bmun) { ctx.strokeStyle = '#3d3535'; ctx.globalAlpha = 0.8; ctx.lineWidth = 1.3 / s; ctx.lineJoin = 'round'; gm.paths.forEach(function (p) { ctx.stroke(p); }); ctx.globalAlpha = 1; }
     if (pontos) {
-      var L = RMD.grupos[o.g].locais, kx = ga.kx, rmax = Math.max(1.6, Math.min(9, 2.2 * Math.sqrt(this.z))) / t[0];
+      var L = RMD.grupos[o.g].locais, P = pontosRM(o.g), rmax = Math.max(1.6, Math.min(9, 2.2 * Math.sqrt(this.z))) / s;
       var amax = 0; L.v[0].forEach(function (a) { if (a > amax) amax = a; });
       var ordem = L.x.map(function (_, i) { return i; }).sort(function (a, b) { return L.v[0][b] - L.v[0][a]; });
       ordem.forEach(function (i) {
         var c = o.cor(i); if (!c) return;
         var r = Math.max(0.35, Math.sqrt(L.v[0][i] / amax)) * rmax;
-        ctx.beginPath(); ctx.arc(L.x[i] * kx, -L.y[i], r, 0, 6.2832);
-        ctx.fillStyle = c; ctx.fill(); ctx.strokeStyle = 'rgba(40,30,30,.55)'; ctx.lineWidth = 0.5 / t[0]; ctx.stroke();
+        ctx.beginPath(); ctx.arc(P.x[i], P.y[i], r, 0, 6.2832);
+        ctx.fillStyle = c; ctx.fill(); ctx.strokeStyle = misturarCor(c, '#2b2525', 0.45); ctx.lineWidth = 0.6 / s; ctx.stroke();
       });
     }
     if (this.sel != null) {
-      ctx.setLineDash([4 / t[0], 3 / t[0]]); ctx.strokeStyle = '#2b2525'; ctx.lineWidth = 1.8 / t[0];
-      if (pontos) { var L2 = RMD.grupos[o.g].locais; ctx.beginPath(); ctx.arc(L2.x[this.sel] * ga.kx, -L2.y[this.sel], 10 / t[0], 0, 6.2832); ctx.stroke(); }
+      ctx.setLineDash([4 / s, 3 / s]); ctx.strokeStyle = '#2b2525'; ctx.lineWidth = 1.8 / s;
+      if (pontos) { var P2 = pontosRM(o.g); ctx.beginPath(); ctx.arc(P2.x[this.sel], P2.y[this.sel], 10 / s, 0, 6.2832); ctx.stroke(); }
       else if (ga.paths[this.sel]) ctx.stroke(ga.paths[this.sel]);
       ctx.setLineDash([]);
     }
     this.t = t;
+    // nomes: municípios por cima; bairros, distritos ou zonas onde couberem
+    if (cam.rmun || (cam.runi && o.nivel !== 'mun' && !pontos)) {
+      var G = RMD.grupos[o.g], caixas = [], halo = '#ffffff';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+      var por = function (geo, nomes, fs, peso) {
+        ctx.font = peso + ' ' + fs + "px 'Public Sans', sans-serif";
+        geo.pts.forEach(function (pt, k) {
+          if (!pt || caixas.length > 500) return;
+          var x = pt[0] * s + t[1], y = pt[1] * s + t[2]; if (x < 0 || x > w || y < 0 || y > h) return;
+          var txt = nomes[k] || ''; if (!txt) return;
+          var tw = ctx.measureText(txt).width + 6, th = fs * 1.3, cx = [x - tw / 2, y - th / 2, x + tw / 2, y + th / 2];
+          if (caixas.some(function (q) { return cx[0] < q[2] && cx[2] > q[0] && cx[1] < q[3] && cx[3] > q[1]; })) return;
+          caixas.push(cx); ctx.strokeStyle = halo; ctx.lineWidth = 3; ctx.strokeText(txt, x, y); ctx.fillStyle = '#2b2525'; ctx.fillText(txt, x, y);
+        });
+      };
+      if (cam.rmun) por(gm, G.niveis.mun.nome, 12, '800');
+      if (cam.runi && o.nivel !== 'mun' && !pontos) por(ga, G.niveis[o.nivel].nome, 10.5, '600');
+    }
+    if (comFundo) creditoFundo(ctx, w, h, dpr, cam.fundo);
   };
   MapaRM.prototype.achar = function (e) {
     var r = this.cv.getBoundingClientRect(), t = this.t; if (!t) return null;
     var x = (e.clientX - r.left - t[1]) / t[0], y = (e.clientY - r.top - t[2]) / t[0], ga = this.ga;
     if (this.o.nivel === 'loc') {
-      var L = RMD.grupos[this.o.g].locais, best = null, bd = Math.pow(12 / t[0], 2);
-      for (var i = 0; i < L.x.length; i++) { var dx = L.x[i] * ga.kx - x, dy = -L.y[i] - y, d = dx * dx + dy * dy; if (d < bd && this.o.cor(i)) { bd = d; best = i; } }
+      var L = RMD.grupos[this.o.g].locais, P = pontosRM(this.o.g), best = null, bd = Math.pow(12 / t[0], 2);
+      for (var i = 0; i < L.x.length; i++) { var dx = P.x[i] - x, dy = P.y[i] - y, d = dx * dx + dy * dy; if (d < bd && this.o.cor(i)) { bd = d; best = i; } }
       return best;
     }
     var ctx = this.cv.getContext('2d'); ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -1542,7 +1677,7 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
     if (this.sel !== k) { this.sel = k; this.desenhar(); }
     mostrarDica(this.o.dica(k), e.clientX, e.clientY);
   };
-  function htmlMapaRM(id, alt) { return htmlMapa(id, alt).replace(/<button data-camacao[\s\S]*?<\/button>/, ''); }   // sem "Camadas" (só vale para os mapas de municípios do Brasil)
+  function htmlMapaRM(id, alt) { return htmlMapa(id, alt); }
   var IDX_MUN_RM = null;
   function nomeMunRM(cod) {
     if (!IDX_MUN_RM) { IDX_MUN_RM = {}; M.cod.forEach(function (c, i) { IDX_MUN_RM[c] = i; }); }
@@ -1576,6 +1711,41 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
   }
   function corVotRM(k, m) { var x = VOT_RM[k], v = MED_RM[k] ? MED_RM[k].f(m) : null; return corFaixa(v, x.lim, x.pal); }
 
+  // ---------- TESTE: periferias pelos mapas de favelas catalogados no MetaFavela (CEFAVELA/UFABC) — virada_metafavela.py
+  function htmlMF() {
+    var MF = V.ato6.metafavela; if (!MF || !MF.cidades) return '';
+    var gs = Object.keys(MF.cidades), NOME_MF = { fav: 'Dentro de\nfavela', ent: 'Vizinhança\n(até ' + MF.entorno + ' m)', fora: 'Longe\n(mais de ' + MF.entorno + ' m)' };
+    var html = '<div class="destaque" style="margin-bottom:16px"><b>Versão teste — periferias pelos mapas de favelas do MetaFavela.</b> O MetaFavela (Centro de Estudos da Favela, CEFAVELA/UFABC) é um catálogo das bases sobre favelas produzidas por prefeituras, institutos e universidades; ele não tem um método único. Aqui usei as bases do catálogo que dá para baixar: ' + gs.map(function (g) { return esc(MF.cidades[g].nome) + ' (' + esc(MF.cidades[g].fonte) + ')'; }).join('; ') + '. Cada local de votação da capital foi classificado pela distância até a favela mais perto. Os quadros com o Censo 2022 continuam abaixo, para comparar.</div>';
+    // 1. colunas por cidade
+    var linhas = [];
+    gs.forEach(function (g) { var C = MF.cidades[g]; ['fav', 'ent', 'fora'].forEach(function (k) { if (C.classes[k]) linhas.push({ g: g, k: k, m: medRM(C.classes[k]) }); }); });
+    html += '<section class="cartao"><h3>Teste MetaFavela: perto das favelas, Lula foi melhor?</h3><p class="sub">% de Lula no 2º turno de 2026 nos locais de votação dentro de favelas (ou a até ' + MF.perto + ' m, folga para o erro da coordenada), na vizinhança (até ' + MF.entorno + ' m) e longe delas, em cada capital. Número em cima = avanço de Lula do 1º para o 2º turno nas mesmas seções.</p>' +
+      svgColunas(gs.map(function (g) { var C = MF.cidades[g]; return { rot: C.nome, vals: ['fav', 'ent', 'fora'].map(function (k) { return C.classes[k] ? medRM(C.classes[k]).l2p : null; }), topo: C.classes.fav ? fD(medRM(C.classes.fav).av) : '', extra: ['fav', 'ent', 'fora'].map(function (k) { var m = C.classes[k] ? medRM(C.classes[k]) : null; return m ? NOME_MF[k].replace('\n', ' ') + ': ' + fN(m.aptos) + ' eleitores, avanço ' + fD(m.av) + ' p.p.' : ''; }).join('<br>') }; }),
+        [{ nome: 'Dentro de favela', cor: css('--marca') }, { nome: 'Vizinhança', cor: '#e8a6a0' }, { nome: 'Longe', cor: '#b9aea8' }], { min: 0, max: 80, suf: '%', h: 320, W: 1100 }) +
+      legenda([[css('--marca'), 'Dentro de favela (até ' + MF.perto + ' m)'], ['#e8a6a0', 'Vizinhança (até ' + MF.entorno + ' m)'], ['#b9aea8', 'Longe (mais de ' + MF.entorno + ' m)']]) +
+      '<div class="tab-x"><table class="tab"><thead><tr><th>Capital</th><th>Grupo</th><th class="n">Eleitores</th><th class="n">Lula 2º t. 2026</th><th class="n">Avanço 1º→2º</th><th class="n">Lula 2º t. 2022</th><th class="n">2026 − 2022</th></tr></thead><tbody>' +
+      linhas.map(function (x) { var m = x.m; return '<tr><td>' + (x.k === 'fav' ? '<b>' + esc(MF.cidades[x.g].nome) + '</b>' : '') + '</td><td>' + esc(NOME_MF[x.k].replace('\n', ' ')) + '</td><td class="n">' + fN(m.aptos) + '</td><td class="n">' + fP(m.l2p) + '</td><td class="n"><b>' + fD(m.av) + '</b></td><td class="n">' + fP(m.l22p) + '</td><td class="n">' + fD(m.m22) + '</td></tr>'; }).join('') +
+      '</tbody></table></div><p class="fonte-g">Fontes: MetaFavela (CEFAVELA/UFABC), catálogo; ' + gs.map(function (g) { return esc(MF.cidades[g].fonte); }).filter(function (v, i, a) { return a.indexOf(v) === i; }).join('; ') + '; TSE, locais de votação, votação por seção e boletins de urna.</p></section>';
+    // 2. concordância com o Censo 2022
+    var NC = { '1': 'Q1', '2': 'Q2', '3': 'Q3', '4': 'Q4', '5': 'Q5', '6': 'Favela (Censo)', '-': 'sem classe' };
+    html += '<section class="cartao"><h3>Teste MetaFavela × Censo 2022: as duas formas apontam os mesmos lugares?</h3><p class="sub">Dos eleitores que votam em locais dentro de favelas pelos mapas locais, quantos o Censo 2022 também põe nas periferias (Q4, Q5 ou favelas e comunidades do IBGE, pelo entorno de 500 m) — e quantos ficam nas áreas centrais (Q1 e Q2).</p>' +
+      '<div class="tab-x"><table class="tab"><thead><tr><th>Capital</th><th class="n">Polígonos na base</th><th class="n">Locais dentro de favela</th><th class="n">Também periferia no Censo</th><th class="n">Favela também no IBGE</th><th class="n">Áreas centrais no Censo</th></tr></thead><tbody>' +
+      gs.map(function (g) {
+        var C = MF.cidades[g], cz = C.cruz, tot = 0, per = 0, fcu = 0, cen = 0;
+        Object.keys(cz).forEach(function (k) { var p = k.split('|'); if (p[0] !== 'fav') return; tot += cz[k]; if ('456'.indexOf(p[1]) >= 0) per += cz[k]; if (p[1] === '6') fcu += cz[k]; if ('12'.indexOf(p[1]) >= 0) cen += cz[k]; });
+        return '<tr><td>' + esc(C.nome) + '</td><td class="n">' + fN(C.poligonos) + '</td><td class="n">' + fN(C.locais_fav) + ' de ' + fN(C.locais) + '</td><td class="n"><b>' + (tot ? fP(100 * per / tot, 0) : '—') + '</b></td><td class="n">' + (tot ? fP(100 * fcu / tot, 0) : '—') + '</td><td class="n">' + (tot ? fP(100 * cen / tot, 0) : '—') + '</td></tr>';
+      }).join('') + '</tbody></table></div>' +
+      '<p class="nota">Os mapas locais costumam marcar mais favelas e núcleos (inclusive pequenos e já urbanizados) do que o IBGE. Quando um local de votação fica dentro de uma favela local mas o Censo o põe numa área central, em geral é favela pequena no meio de bairro de classe média.</p></section>';
+    // 3. as favelas com mais eleitores
+    var gf = st.mfg && MF.cidades[st.mfg] ? st.mfg : gs[0], CF = MF.cidades[gf];
+    html += '<section class="cartao"><h3>Teste MetaFavela: as favelas com mais eleitores votando dentro delas</h3><p class="sub">Locais de votação dentro de cada favela (ou a até ' + MF.perto + ' m) somados, com pelo menos 2.000 eleitores. Os moradores também votam em escolas fora da favela, então os números mostram uma parte deles.</p>' +
+      '<div class="ctl"><select class="sel" data-sel="mfg" aria-label="Capital">' + gs.map(function (g) { return '<option value="' + g + '"' + (g === gf ? ' selected' : '') + '>' + esc(MF.cidades[g].nome) + '</option>'; }).join('') + '</select></div>' +
+      '<div class="tab-x tab-rola"><table class="tab"><thead><tr><th>Favela ou núcleo</th><th class="n">Eleitores</th><th class="n">Lula 2º t. 2026</th><th class="n">Avanço 1º→2º</th><th class="n">Lula 2º t. 2022</th><th class="n">2026 − 2022</th></tr></thead><tbody>' +
+      CF.favelas.map(function (f) { var m = medRM(f[1]); return '<tr><td>' + esc(f[0]) + '</td><td class="n">' + fN(m.aptos) + '</td><td class="n">' + fP(m.l2p) + '</td><td class="n"><b>' + fD(m.av) + '</b></td><td class="n">' + fP(m.l22p) + '</td><td class="n">' + fD(m.m22) + '</td></tr>'; }).join('') +
+      '</tbody></table></div><p class="fonte-g">Fonte da base de ' + esc(CF.nome) + ': ' + esc(CF.fonte) + ', catalogada no MetaFavela; TSE.</p></section>' +
+      '<h3 class="sub-ato">Para comparar: as periferias pelo Censo 2022</h3>';
+    return html;
+  }
   function htmlRM() {
     RMD = V.ato6.rm;
     if (!RMD || !RMD.grupos) return '';
@@ -1677,7 +1847,12 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
     var temBairro = G.niveis.area && G.niveis.dist && G.niveis.area.id.length > G.niveis.dist.id.length;
     var fmtLim = function (l, f) { return l.map(function (v, k) { return k === 0 ? 'até ' + f(v) : f(l[k - 1]) + ' a ' + f(v); }).concat(['mais de ' + f(l[l.length - 1])]); };
     var rotI = fmtLim(limI, IK.fmt);
-    html += '<section class="cartao"><h3>Dentro de cada região: onde estão as periferias e como votaram</h3><p class="sub">À esquerda, os indicadores do Censo 2022; à direita, os votos — no mesmo recorte. Escolha a região, o nível (municípios, zonas eleitorais, distritos, bairros ou cada local de votação) e o que cada mapa mostra. Arraste e use a roda do mouse (ou os botões) para aproximar; passe o mouse (ou toque) para ver os números.</p>' +
+    var nomeNv = { mun: 'municípios', zona: 'zonas eleitorais', dist: 'distritos', area: 'bairros ou distritos', loc: 'locais de votação' }[nv];
+    DQ.rm = { nome: nomeNv + ' de ' + nomeCurto(G.nome), itens: un.filter(function (u) { return u.m.aptos; }).map(function (u) { return { nome: u.nome + (u.onde && nv !== 'mun' ? ' · ' + u.onde.replace(/ \([A-Z]{2}\)$/, '') : ''), v: { l2p: u.m.l2p, av: u.m.av, m22: u.m.m22, l1p: u.m.l1p, ind: u.ind.ind, pp: u.ind.pp, nalf: u.ind.nalf, esg: u.ind.esg, fcu: u.ind.fcu, aptos: u.m.aptos } }; }),
+      medidas: [{ k: vk === 'l2p' ? 'l2p' : vk, nome: VK.nome, fmt: MED_RM[vk].suf === '%' ? function (v) { return fP(v); } : function (v) { return fD(v) + ' p.p.'; }, ref: MED_RM[vk].suf === '%' ? 50 : vk === 'av' ? null : 0 }].concat(
+        [['l2p', '% de Lula no 2º turno de 2026', 50], ['av', 'Avanço de Lula do 1º para o 2º turno (p.p.)', null], ['m22', 'Lula no 2º turno: 2026 − 2022 (p.p.)', 0], ['ind', 'Índice de periferia (Censo 2022)', 0], ['pp', '% de pessoas pretas e pardas', null], ['nalf', '% que não sabem ler (15+)', null], ['esg', '% sem esgoto adequado', null], ['fcu', '% em favelas e comunidades', null], ['aptos', 'Eleitores', null]]
+          .filter(function (x) { return x[0] !== vk; }).map(function (x) { var k = x[0]; return { k: k, nome: x[1], ref: x[2], fmt: k === 'aptos' ? function (v) { return fN(v); } : k === 'ind' ? function (v) { return IND_RM.ind.fmt(v); } : k === 'av' || k === 'm22' ? function (v) { return fD(v) + ' p.p.'; } : function (v) { return fP(v); } }; })) };
+    html += '<section class="cartao" data-dq="rm"><h3>Dentro de cada região: onde estão as periferias e como votaram</h3><p class="sub">À esquerda, os indicadores do Censo 2022; à direita, os votos — no mesmo recorte. Escolha a região, o nível (municípios, zonas eleitorais, distritos, bairros ou cada local de votação) e o que cada mapa mostra. Arraste e use a roda do mouse (ou os botões) para aproximar; passe o mouse (ou toque) para ver os números.</p>' +
       '<div class="ctl"><select class="sel" data-sel="rmg" aria-label="Região">' + optsG + '</select>' +
       '<select class="sel" data-sel="rmn" aria-label="Nível">' + nvs.map(function (k) { return '<option value="' + k + '"' + (nv === k ? ' selected' : '') + '>' + esc(k === 'area' && !temBairro ? 'Bairros (onde o IBGE tem)' : NIVEL_RM[k]) + '</option>'; }).join('') + '</select></div>' +
       '<div class="duas-rm"><div><div class="ctl"><select class="sel" data-sel="rmi" aria-label="Indicador">' + Object.keys(IND_RM).map(function (k) { return '<option value="' + k + '"' + (ik === k ? ' selected' : '') + '>' + esc(IND_RM[k].nome) + '</option>'; }).join('') + '</select></div>' +
@@ -1830,9 +2005,9 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
     }
     return { t: 'mapa', cores: cores, idx: idx.join(''), uf: u, n: N };
   }
-  function quadroParaEnvio(c) {
+  function quadroParaEnvio(c, soTexto) {   // soTexto: só título, texto, fonte e legenda (a janela de envio cuida dos visuais)
     var vis = [];
-    c.querySelectorAll('svg.svg, .mapa-caixa[data-mapa]').forEach(function (el) {
+    if (!soTexto) c.querySelectorAll('svg.svg, .mapa-caixa[data-mapa]').forEach(function (el) {
       if (el.classList.contains('mapa-caixa')) {
         var m = MAPAS[el.getAttribute('data-mapa')];
         if (m instanceof MapaRM) { try { vis.push({ t: 'img', src: m.cv.toDataURL('image/png') }); } catch (er) { /* canvas indisponível */ } }
@@ -1852,17 +2027,226 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
     return { id: 'v' + Date.now().toString(36), quando: Date.now(), titulo: tit.trim().slice(0, 120), x: x.slice(0, 220),
       k: ato ? ato.curto : 'A virada de 2026', fonte: /IBGE|Censo/.test(tudo) ? 'TSE e IBGE' : /estimativa/i.test(tudo) ? 'TSE · estimativa estatística' : 'TSE', vis: vis, leg: leg };
   }
-  function enviarParaPostagens(c) {
-    var env = quadroParaEnvio(c);
-    if (!env.vis.length) return avisoRapido('Este quadro não tem gráfico, mapa ou tabela para enviar.');
+  // ---------- escolher o que exportar e montar postagens a partir de um quadro ("⤓ Imagem" e "➜ Postagens").
+  // Com mais de um gráfico ou mapa, pergunta qual usar. Nas postagens, monta vários cards de uma vez: cada visual no seu
+  // card (ou todos juntos), números em destaque tirados dos dados do quadro, um ranking e uma seleção de itens. Os dados
+  // vêm de DQ[chave] (quadros com data-dq: mapas de municípios e das regiões) ou, nos outros, da tabela do quadro.
+  var DQ = {};   // chave -> {nome, itens: [{nome, v: {medida: valor}}], medidas: [{k, nome, fmt, ref}]} (ou função que devolve isso)
+  var ENV = null;   // estado da janela
+  function visuaisDe(c) {
+    return [].slice.call(c.querySelectorAll('svg.svg, .mapa-caixa[data-mapa]')).map(function (el, k) {
+      var mapa = el.classList.contains('mapa-caixa'), box = el.closest('.duas-rm > div, .tres > div'), nome = '';
+      if (box) { var r = box.querySelector('.rot-mapa'), sl = box.querySelector('select'); nome = r ? r.textContent : sl ? sl.options[sl.selectedIndex].text : ''; }
+      if (!nome && mapa) { var s0 = c.querySelector('select[data-sel]'); if (s0 && c.querySelectorAll('.mapa-caixa').length === 1) nome = s0.options[s0.selectedIndex].text; }
+      return { el: el, mapa: mapa, box: box, m: mapa ? MAPAS[el.getAttribute('data-mapa')] : null, nome: (mapa ? 'Mapa' : 'Gráfico') + (nome ? ': ' + nome.trim() : ' ' + (k + 1)) };
+    });
+  }
+  // números das células de tabela: "62,4%", "+9,3", "−0,9", "9.132.019", "32,5 milhões"
+  function numBR(t) {
+    if (t == null) return null;
+    var m = /([−+-]?)\s?(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d+))?/.exec(String(t)); if (!m) return null;
+    var v = parseFloat(m[2].replace(/\./g, '') + (m[3] ? '.' + m[3] : '')); return m[1] === '−' || m[1] === '-' ? -v : v;
+  }
+  function dadosTabela(c) {
+    var tb = c.querySelector('table'); if (!tb) return null;
+    var ths = [].map.call(tb.querySelectorAll('thead th'), function (th) { return th.textContent.trim(); });
+    var rows = [].slice.call(tb.querySelectorAll('tbody tr')), medidas = [];
+    ths.forEach(function (nome, j) {
+      if (!j) return;
+      var cel = rows.map(function (tr) { return tr.children[j] ? tr.children[j].textContent.trim() : ''; }), amostra = cel.filter(function (x) { return numBR(x) != null; });
+      if (amostra.length < Math.max(2, rows.length * 0.6)) return;
+      var pc = /%/.test(amostra[0]), sinal = amostra.some(function (x) { return /^[+−-]/.test(x); }), dec = amostra.some(function (x) { return /\d,\d/.test(x); });
+      medidas.push({ k: 'c' + j, nome: nome, ref: pc ? 50 : sinal ? 0 : null, fmt: pc ? function (v) { return fP(v); } : sinal ? function (v) { return fD(v); } : dec ? function (v) { return v.toLocaleString('pt-BR', { maximumFractionDigits: 1 }); } : function (v) { return fN(v); } });
+    });
+    if (!medidas.length) return null;
+    var itens = rows.map(function (tr) { var nome = tr.children[0] ? tr.children[0].textContent.trim() : '', v = {}; medidas.forEach(function (m) { var x = numBR((tr.children[+m.k.slice(1)] || {}).textContent); if (x != null) v[m.k] = x; }); return { nome: nome, v: v }; }).filter(function (x) { return x.nome; });
+    return itens.length >= 2 ? { nome: 'linhas da tabela', itens: itens, medidas: medidas } : null;
+  }
+  function dadosDe(c) {
+    var k = c.getAttribute('data-dq'), d = k && DQ[k];
+    if (typeof d === 'function') d = d();
+    return d || dadosTabela(c);
+  }
+  // sugestões de números em destaque para uma medida
+  function minusc(t) { t = String(t); if (/^(Lula|Flávio|Bolsonaro|Brasil)/.test(t)) return t; return /^[A-ZÁÉÍÓÚÂÊÔÃÕÇ][a-záéíóúâêôãõç]/.test(t) ? t.charAt(0).toLowerCase() + t.slice(1) : t; }   // "Avanço de Lula" → "avanço de Lula" (siglas e nomes ficam)
+  function sugestoesEnv(d, m) {
+    var it = d.itens.filter(function (x) { return x.v[m.k] != null && isFinite(x.v[m.k]); }); if (it.length < 2) return [];
+    var ord = it.slice().sort(function (a, b) { return b.v[m.k] - a.v[m.k]; }), mx = ord[0], mn = ord[ord.length - 1], out = [];
+    out.push({ n: m.fmt(mx.v[m.k]), t: mx.nome, x: 'O maior valor de "' + m.nome + '" entre ' + it.length + ' ' + d.nome + '.' });
+    out.push({ n: m.fmt(mn.v[m.k]), t: mn.nome, x: 'O menor valor de "' + m.nome + '" entre ' + it.length + ' ' + d.nome + '.' });
+    var peso = it.every(function (x) { return x.v.aptos > 0; }), sw = 0, sv = 0;
+    it.forEach(function (x) { var p = peso ? x.v.aptos : 1; sw += p; sv += p * x.v[m.k]; });
+    out.push({ n: m.fmt(sv / sw), t: (peso ? 'é a média, pesada pelos eleitores, de ' : 'é a média de ') + minusc(m.nome), x: 'Somando ' + it.length + ' ' + d.nome + '.' });
+    if (m.ref != null) { var ac = it.filter(function (x) { return x.v[m.k] > m.ref; }).length; out.push({ n: ac + ' de ' + it.length, t: d.nome + ' com ' + minusc(m.nome) + ' acima de ' + m.fmt(m.ref), x: fP(100 * ac / it.length, 0) + ' do total.' }); }
+    out.push({ n: m.fmt(Math.abs(mx.v[m.k] - mn.v[m.k])).replace(/^[+−]/, ''), t: 'de distância entre ' + mx.nome + ' e ' + mn.nome, x: m.nome + ': ' + m.fmt(mx.v[m.k]) + ' × ' + m.fmt(mn.v[m.k]) + '.' });
+    return out;
+  }
+  function barrasEnv(lst, m) {
+    return svgBarrasDiv(lst.map(function (x) { var v = x.v[m.k]; return { rot: String(x.nome).length > 34 ? String(x.nome).slice(0, 33) + '…' : x.nome, v: v, cor: v < 0 ? '#2f5d8a' : css('--marca'), txt: m.fmt(v) }; }), { rotW: 270, W: 900, dir: 110 });
+  }
+  function rankingEnv(d, m, ordem, n) {
+    return d.itens.filter(function (x) { return x.v[m.k] != null && isFinite(x.v[m.k]); }).sort(function (a, b) { return ordem === 'menores' ? a.v[m.k] - b.v[m.k] : b.v[m.k] - a.v[m.k]; }).slice(0, n);
+  }
+  // mapa de região em imagem nítida (o que está na tela, com as camadas escolhidas): JPEG 1,4× numa caixa de 1000 × 820
+  function imagemMapaRM(m) {
+    var box = document.createElement('div'); box.style.cssText = 'position:fixed;left:-4000px;top:0;width:1000px';
+    box.innerHTML = '<div class="mapa-caixa" style="height:820px"><canvas></canvas></div>'; document.body.appendChild(box);
+    var o = {}; Object.keys(m.o).forEach(function (k) { o[k] = m.o[k]; }); o.estatico = true; o.dpr = 1.4;
+    var cp = new MapaRM('envtmp', o), f = 1000 / (m.cv.clientWidth || 1000); cp.z = m.z; cp.dx = m.dx * f; cp.dy = m.dy * f;
+    cp.montar(box.firstChild);
+    return fundosProntos().then(function () { cp.desenhar(); var u = cp.cv.toDataURL('image/jpeg', 0.86); box.remove(); return u; }, function () { box.remove(); return null; });
+  }
+  function visEnvioDe(v) {
+    if (!v.mapa) return Promise.resolve({ t: 'svg', html: v.el.outerHTML });
+    if (v.m instanceof MapaRM) return imagemMapaRM(v.m).then(function (u) { return u ? { t: 'img', src: u } : null; });
+    var p = mapaParaEnvio(v.m); p.cam = JSON.parse(JSON.stringify(st.cam)); return Promise.resolve(p);
+  }
+  function legendaDe(el) {
+    var box = el.closest('.duas-rm > div, .tres > div') || el.parentNode, l = box.querySelector('.leg') || (el.nextElementSibling && el.nextElementSibling.classList.contains('leg') ? el.nextElementSibling : null);
+    if (!l) { var c = el.closest('section.cartao'); l = c && c.querySelectorAll('.leg').length === 1 ? c.querySelector('.leg') : null; }
+    return l ? [].slice.call(l.querySelectorAll('span')).slice(0, 12).map(function (s) { var i = s.querySelector('i'); return [i ? i.style.background || getComputedStyle(i).backgroundColor : '#999', s.textContent.trim()]; }) : [];
+  }
+  function abrirEnvio(c, modo) {
+    var vis = visuaisDe(c);
+    if (modo === 'img' && vis.length <= 1) return salvarQuadro(c);
+    if (modo === 'post' && !vis.length && !c.querySelector('table')) return avisoRapido('Este quadro não tem gráfico, mapa ou tabela para enviar.');
+    var d = modo === 'post' ? dadosDe(c) : null;
+    ENV = { c: c, modo: modo, vis: vis, d: d, usar: vis.map(function (_, k) { return modo === 'img' ? k === 0 : true; }), junto: false,
+      dest: {}, med: d ? (d.medidas.filter(function (x) { return !/^eleitores$/i.test(x.nome); })[0] || d.medidas[0]).k : null, rk: false, ordem: 'maiores', n: 10, esc: {}, busca: '', mostrarCam: false };
+    var j = $('env-janela');
+    if (!j) {
+      j = document.createElement('div'); j.id = 'env-janela'; j.className = 'rel-fundo'; j.hidden = true;
+      j.innerHTML = '<div class="rel-caixa" role="dialog" aria-modal="true" aria-labelledby="env-tit"><div class="rel-topo"><h2 id="env-tit"></h2><button class="rel-x" data-env="fechar" aria-label="Fechar">×</button></div>' +
+        '<div class="rel-corpo"></div><div class="rel-pe"><span class="rel-conta"></span><button class="btn" data-env="fechar">Cancelar</button><button class="btn btn-destaque" data-env="ok"></button></div></div>';
+      document.body.appendChild(j);
+      j.addEventListener('click', function (e) {
+        if (e.target === j) return fecharEnvio();
+        var b = e.target.closest('[data-env]'); if (!b) return;
+        var a = b.getAttribute('data-env'), v = b.getAttribute('data-v');
+        if (a === 'fechar') return fecharEnvio();
+        if (a === 'ok') return concluirEnvio();
+        if (a === 'cam') ENV.mostrarCam = !ENV.mostrarCam;
+        renderEnvio();
+      });
+      j.addEventListener('change', function (e) { mudarEnvio(e.target, false); });
+      j.addEventListener('input', function (e) { if (e.target.matches('[data-envb], input[type=range]')) mudarEnvio(e.target, true); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !j.hidden) fecharEnvio(); });
+    }
+    j.querySelector('#env-tit').textContent = modo === 'img' ? 'Salvar imagem: qual gráfico ou mapa?' : 'Enviar para as postagens';
+    j.hidden = false; renderEnvio();
+  }
+  function fecharEnvio() { var j = $('env-janela'); if (j) j.hidden = true; ENV = null; }
+  function mudarEnvio(t, aoVivo) {
+    if (!ENV) return;
+    var k = t.getAttribute('data-envc'), v = t.getAttribute('data-v');
+    if (t.hasAttribute('data-envb')) { ENV.busca = t.value; return renderEnvio(true); }
+    if (k === 'usar') { if (ENV.modo === 'img') ENV.usar = ENV.usar.map(function (_, i) { return i === +v; }); else ENV.usar[+v] = t.checked; }
+    else if (k === 'junto') ENV.junto = t.value === '1';
+    else if (k === 'dest') ENV.dest[v] = t.checked;
+    else if (k === 'med') { ENV.med = t.value; ENV.dest = {}; ENV.esc = ENV.esc; }
+    else if (k === 'rk') ENV.rk = t.checked;
+    else if (k === 'ordem') ENV.ordem = t.value;
+    else if (k === 'n') ENV.n = +t.value;
+    else if (k === 'esc') ENV.esc[v] = t.checked;
+    else if (k && k.indexOf('cam') === 0) {   // camadas do mapa (as mesmas do botão CAMADAS)
+      var rm = k.indexOf('camrm') === 0, c = rm ? st.camRM : st.cam, campo = k.replace(/^cam(rm)?-/, '');
+      if (campo === 'fundo') c.fundo = t.value; else if (campo === 'opac') c.opac = +t.value;
+      else if (rm) c[campo] = t.checked; else if (campo.indexOf('b.') === 0) c.b[campo.slice(2)].on = t.checked; else if (campo.indexOf('r.') === 0) c.r[campo.slice(2)] = t.checked;
+      if (!aoVivo) { if (rm) guardarCamRM(); else guardarCam(); }
+      redesenharMapas();
+      if (aoVivo) return;
+      return fundosProntos().then(function () { redesenharMapas(); if (ENV) renderEnvio(); });
+    }
+    if (!aoVivo) renderEnvio();
+  }
+  function cardsEnvio() {   // a lista do que vai ser criado (para a contagem e para o envio)
+    var E = ENV, out = [], vs = E.vis.filter(function (_, k) { return E.usar[k]; });
+    if (vs.length) { if (E.junto || vs.length === 1) out.push({ tipo: 'vis', vis: vs }); else vs.forEach(function (v) { out.push({ tipo: 'vis', vis: [v] }); }); }
+    var m = E.d && E.d.medidas.filter(function (x) { return x.k === E.med; })[0];
+    if (m) {
+      sugestoesEnv(E.d, m).forEach(function (s, k) { if (E.dest[k]) out.push({ tipo: 'num', s: s }); });
+      if (E.rk) out.push({ tipo: 'rk', m: m, lst: rankingEnv(E.d, m, E.ordem, E.n) });
+      var es = E.d.itens.filter(function (x, k) { return E.esc[k] && x.v[m.k] != null; });
+      if (es.length) out.push({ tipo: 'esc', m: m, lst: es.sort(function (a, b) { return b.v[m.k] - a.v[m.k]; }) });
+    }
+    return out;
+  }
+  function thumbEnv(v) {
+    if (!v.mapa) return '<div class="env-thumb">' + v.el.outerHTML + '</div>';
+    try { return '<div class="env-thumb"><img alt="" src="' + v.m.cv.toDataURL('image/png') + '"></div>'; } catch (e) { return '<div class="env-thumb">mapa</div>'; }
+  }
+  function htmlCamEnv() {
+    var temRM = ENV.vis.some(function (v, k) { return ENV.usar[k] && v.m instanceof MapaRM; }), temBR = ENV.vis.some(function (v, k) { return ENV.usar[k] && v.mapa && !(v.m instanceof MapaRM); });
+    var chk = function (k, on, t) { return '<label class="env-chk"><input type="checkbox" data-envc="' + k + '"' + (on ? ' checked' : '') + '>' + t + '</label>'; }, h = '';
+    if (temRM) { var c = st.camRM; h += '<div class="env-cam"><b>Mapas da região</b><label>Fundo <select data-envc="camrm-fundo">' + optsFundo(c.fundo) + '</select></label>' + chk('camrm-bmun', c.bmun, 'contornos dos municípios') + chk('camrm-buni', c.buni, 'contornos dos pedaços') + chk('camrm-rmun', c.rmun, 'nomes dos municípios') + chk('camrm-runi', c.runi, 'nomes dos bairros/distritos/zonas') + '<label>Opacidade <input type="range" min="0.3" max="1" step="0.05" data-envc="camrm-opac" value="' + c.opac + '"></label></div>'; }
+    if (temBR) { var b = st.cam; h += '<div class="env-cam"><b>Mapas do Brasil</b><label>Fundo <select data-envc="cam-fundo">' + optsFundo(b.fundo) + '</select></label>' + CAMADAS_V.map(function (x) { return chk('cam-b.' + x[0], b.b[x[0]].on, 'contornos: ' + x[1].toLowerCase()); }).join('') + CAMADAS_V.filter(function (x) { return x[0] !== 'mun'; }).map(function (x) { return chk('cam-r.' + x[0], b.r[x[0]], 'nomes: ' + x[1].toLowerCase()); }).join('') + chk('cam-r.mun', b.r.mun, 'nomes: municípios') + '<label>Opacidade <input type="range" min="0.3" max="1" step="0.05" data-envc="cam-opac" value="' + b.opac + '"></label></div>'; }
+    return h ? '<div class="env-cams">' + h + '<p class="rel-nota">Vale também para os mapas na tela (as mesmas opções do botão CAMADAS).</p></div>' : '';
+  }
+  function renderEnvio(soLista) {
+    var E = ENV, j = $('env-janela'); if (!E || !j) return;
+    if (soLista) { var l = j.querySelector('.env-lista'); if (l) l.innerHTML = htmlListaEsc(); contarEnvio(); return; }
+    var corpo = j.querySelector('.rel-corpo'), rola = corpo.scrollTop, h = '';
+    var temMapa = E.vis.some(function (v, k) { return E.usar[k] && v.mapa; });
+    if (E.vis.length) {
+      h += '<p class="env-sec">' + (E.modo === 'img' ? 'Escolha o gráfico ou mapa da imagem' : '1. Gráficos e mapas') + '</p><div class="env-vis">' +
+        E.vis.map(function (v, k) { return '<label class="env-op' + (E.usar[k] ? ' on' : '') + '"><input type="' + (E.modo === 'img' ? 'radio' : 'checkbox') + '" name="env-usar" data-envc="usar" data-v="' + k + '"' + (E.usar[k] ? ' checked' : '') + '>' + thumbEnv(v) + '<span>' + esc(v.nome) + '</span></label>'; }).join('') + '</div>';
+      if (E.modo === 'post' && E.usar.filter(Boolean).length > 1) h += '<div class="env-linha"><label class="env-chk"><input type="radio" name="env-junto" data-envc="junto" value="0"' + (!E.junto ? ' checked' : '') + '>cada um no seu card</label><label class="env-chk"><input type="radio" name="env-junto" data-envc="junto" value="1"' + (E.junto ? ' checked' : '') + '>todos juntos num card</label></div>';
+      if (temMapa) h += '<button class="btn mini-b" data-env="cam">' + (E.mostrarCam ? 'Esconder as camadas' : 'Camadas dos mapas (fundo, contornos, nomes)…') + '</button>' + (E.mostrarCam ? htmlCamEnv() : '');
+    }
+    if (E.modo === 'post' && E.d) {
+      var m = E.d.medidas.filter(function (x) { return x.k === E.med; })[0];
+      h += '<p class="env-sec">2. Tirar dos dados do quadro (' + E.d.itens.length + ' ' + esc(E.d.nome) + ')</p>' +
+        '<div class="env-linha"><label>Medida <select data-envc="med">' + E.d.medidas.map(function (x) { return '<option value="' + x.k + '"' + (x.k === E.med ? ' selected' : '') + '>' + esc(x.nome) + '</option>'; }).join('') + '</select></label></div>' +
+        '<p class="env-sub">Números em destaque (cada um vira um card)</p><div class="env-dest">' +
+        sugestoesEnv(E.d, m).map(function (s, k) { return '<label class="env-chk env-num"><input type="checkbox" data-envc="dest" data-v="' + k + '"' + (E.dest[k] ? ' checked' : '') + '><b>' + esc(s.n) + '</b> ' + esc(s.t) + '</label>'; }).join('') + '</div>' +
+        '<p class="env-sub"><label class="env-chk"><input type="checkbox" data-envc="rk"' + (E.rk ? ' checked' : '') + '>Card com ranking</label> <select data-envc="ordem"><option value="maiores"' + (E.ordem === 'maiores' ? ' selected' : '') + '>maiores</option><option value="menores"' + (E.ordem === 'menores' ? ' selected' : '') + '>menores</option></select> <select data-envc="n">' + [5, 8, 10, 15].map(function (n) { return '<option' + (n === E.n ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></p>' +
+        (E.rk ? '<div class="env-prev">' + barrasEnv(rankingEnv(E.d, m, E.ordem, E.n), m) + '</div>' : '') +
+        '<p class="env-sub">Card com os itens que você escolher</p><input class="env-busca" data-envb type="search" placeholder="Procurar pelo nome…" value="' + esc(E.busca) + '"><div class="env-lista">' + htmlListaEsc() + '</div>';
+    } else if (E.modo === 'post') h += '<p class="rel-nota">Este quadro não tem uma tabela de dados para tirar ranking ou números em destaque; vão os gráficos e mapas escolhidos.</p>';
+    corpo.innerHTML = h; corpo.scrollTop = rola;
+    contarEnvio();
+  }
+  function htmlListaEsc() {
+    var E = ENV, m = E.d.medidas.filter(function (x) { return x.k === E.med; })[0], b = E.busca.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''), n = 0;
+    var esc0 = E.d.itens.map(function (x, k) { return [x, k]; }).filter(function (p) { return E.esc[p[1]]; });
+    var lst = E.d.itens.map(function (x, k) { return [x, k]; }).filter(function (p) { return !E.esc[p[1]] && (!b || String(p[0].nome).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').indexOf(b) >= 0); });
+    return esc0.concat(lst).filter(function () { return n++ < 60; }).map(function (p) { var v = p[0].v[m.k]; return '<label class="env-chk"><input type="checkbox" data-envc="esc" data-v="' + p[1] + '"' + (E.esc[p[1]] ? ' checked' : '') + '>' + esc(p[0].nome) + ' <small>' + (v == null ? '—' : m.fmt(v)) + '</small></label>'; }).join('') + (lst.length + esc0.length > 60 ? '<p class="rel-nota">Mostrando 60; procure pelo nome para achar os outros.</p>' : '');
+  }
+  function contarEnvio() {
+    var j = $('env-janela'), E = ENV; if (!j || !E) return;
+    var n = E.modo === 'img' ? (E.usar.some(Boolean) ? 1 : 0) : cardsEnvio().length;
+    j.querySelector('.rel-conta').textContent = E.modo === 'img' ? '' : n + (n === 1 ? ' card' : ' cards') + ' para criar';
+    var ok = j.querySelector('[data-env="ok"]'); ok.textContent = E.modo === 'img' ? 'Salvar a imagem' : 'Enviar ' + n + (n === 1 ? ' card' : ' cards'); ok.disabled = !n;
+  }
+  function concluirEnvio() {
+    var E = ENV; if (!E) return;
+    if (E.modo === 'img') { var v = E.vis.filter(function (_, k) { return E.usar[k]; })[0]; fecharEnvio(); return salvarQuadro(E.c, v ? v.el : null); }
+    var c = E.c, cards = cardsEnvio(), base = quadroParaEnvio(c, true), ato = base.k, fonte = base.fonte, tit = base.titulo;
+    espera('Preparando os cards…');
+    var tarefas = cards.map(function (cd) {
+      if (cd.tipo === 'num') return Promise.resolve({ tipo: 'num', k: ato, n: cd.s.n, t: cd.s.t, x: cd.s.x, fonte: fonte });
+      if (cd.tipo === 'rk' || cd.tipo === 'esc') return Promise.resolve({ tipo: 'vis', k: ato, t: cd.tipo === 'rk' ? (cd.lst.length + ' ' + E.d.nome + ' com ' + (E.ordem === 'menores' ? 'menor' : 'maior') + ' ' + minusc(cd.m.nome)) : cd.m.nome + ': ' + cd.lst.length + ' ' + E.d.nome + ' escolhidos', x: tit, fonte: fonte, vis: [{ t: 'svg', html: barrasEnv(cd.lst, cd.m) }], leg: [] });
+      return Promise.all(cd.vis.map(visEnvioDe)).then(function (vs) {
+        var um = cd.vis.length === 1 && E.vis.length > 1, rg = c.querySelector('[data-sel="rmg"]'), nmv = um ? cd.vis[0].nome.replace(/^(Mapa|Gráfico): /, '') : '';
+        return { tipo: 'vis', k: ato, t: um ? nmv + (rg ? ' · ' + nomeCurto(rg.options[rg.selectedIndex].text) : '') : tit, x: um ? tit : base.x, fonte: fonte, vis: vs.filter(Boolean), leg: cd.vis.length === 1 ? legendaDe(cd.vis[0].el) : base.leg };
+      });
+    });
+    Promise.all(tarefas).then(function (cs) {
+      espera('');
+      var env = { id: 'v' + Date.now().toString(36), quando: Date.now(), titulo: tit, x: base.x, k: ato, fonte: fonte, cards: cs, vis: (cs.filter(function (x) { return x.vis; })[0] || {}).vis || [], leg: base.leg };
+      fecharEnvio(); gravarPacote(env);
+    }).catch(function (er) { espera(''); alert('Não consegui preparar os cards: ' + (er && er.message ? er.message : er)); });
+  }
+  function enviarParaPostagens(c) { abrirEnvio(c, 'post'); }
+  function gravarPacote(env) {
     var tam = JSON.stringify(env).length;
-    if (tam > 1500000) return avisoRapido('Este gráfico é grande demais para enviar (' + Math.round(tam / 1e6) + ' MB). Use "⤓ Imagem".');
+    if (tam > 3000000) return avisoRapido('Os cards ficaram grandes demais para enviar (' + Math.round(tam / 1e6) + ' MB). Envie menos mapas de uma vez.');
     var l = lerEnvios(); l.unshift(env);
-    while (l.length > 1 && JSON.stringify(l).length > 4000000) l.pop();   // a memória do navegador tem limite: saem os mais antigos
+    while (l.length > 1 && JSON.stringify(l).length > 4500000) l.pop();   // a memória do navegador tem limite: saem os mais antigos
     try { gravarEnvios(l); }
     catch (e) { return avisoRapido('Não consegui guardar no navegador (memória cheia ou bloqueada). Descarte alguns recebidos no Painel de Postagens e tente de novo.'); }
-    var ends = enderecosPostagens();
-    avisoRapido('<b>Enviado para os Painéis de Postagens.</b> Lá, na aba Carrosséis, ele aparece em "Recebidos do painel A virada" (' + l.length + ' na caixa).' +
+    var ends = enderecosPostagens(), n = (env.cards || [1]).length;
+    avisoRapido('<b>Enviado para os Painéis de Postagens: ' + n + (n === 1 ? ' card' : ' cards') + '.</b> Lá, na aba Carrosséis, ' + (n === 1 ? 'ele aparece' : 'eles aparecem') + ' em "Recebidos do painel A virada" (' + l.length + ' na caixa).' +
       (ends.length ? '<span class="av-links">' + ends.map(function (x) { return '<a href="' + encodeURI(x[1]) + '" target="' + x[2] + '" rel="noopener">Abrir ' + esc(x[0]) + ' ↗</a>'; }).join('') + '</span>'
         : ' Abra o Painel de Postagens neste mesmo navegador.'), 14000);
   }
@@ -2298,13 +2682,17 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
     });
   }
   // ---------- fim dos formatos da imagem
-  function salvarQuadro(c) {
+  function salvarQuadro(c, so) {   // so: o gráfico ou mapa escolhido (os outros do quadro ficam fora da imagem)
+    var esconder = so ? visuaisDe(c).filter(function (v) { return v.el !== so; }).map(function (v) { return v.box || v.el; }) : [];
+    if (so) visuaisDe(c).forEach(function (v) { if (v.el !== so && !v.box && v.el.nextElementSibling && v.el.nextElementSibling.classList.contains('leg')) esconder.push(v.el.nextElementSibling); });
+    var mostrar = function () { esconder.forEach(function (e) { e.style.display = ''; }); };
+    esconder.forEach(function (e) { e.style.display = 'none'; });
     espera('Preparando a imagem…');
-    carregar('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js').then(function () {
-      espera('');
+    carregar('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js').then(fundosProntos).then(function () {
+      espera(''); redesenharEm(c);
       // rótulos com os valores (.rx) visíveis só enquanto o quadro é fotografado
       c.classList.add('exp');
-      var tirar = function () { c.classList.remove('exp'); };
+      var tirar = function () { c.classList.remove('exp'); mostrar(); };
       // formato (original, 1:1, 2:3…) e, depois, a faixa da marca e o editor de marcação
       fiImagemElemento(c, css('--card') || '#ffffff', function (el) { return el.classList && (el.classList.contains('img-btn') || el.classList.contains('mapa-zoom') || el.classList.contains('cam-painel') || el.classList.contains('ctl')); }, function (cv, fmt) {
         tirar();
@@ -2319,7 +2707,7 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
         var t = (c.querySelector('h3') || {}).textContent || 'quadro';
         editarImagem(out, 'virada-2026_' + t.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) + '.png');
       }, tirar);
-    }).catch(function (er) { c.classList.remove('exp'); espera(''); alert('Não consegui gerar a imagem: ' + er.message); });
+    }).catch(function (er) { c.classList.remove('exp'); mostrar(); espera(''); alert('Não consegui gerar a imagem: ' + er.message); });
   }
 
   // ======================================================================
@@ -2333,7 +2721,7 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
     if (b.hasAttribute('data-m3')) { st.m3 = b.getAttribute('data-m3'); render(); return; }
     if (b.hasAttribute('data-cmpt')) { st.cmpT = b.getAttribute('data-cmpt'); render(); return; }
     if (b.hasAttribute('data-g6s')) { st.g6s = b.getAttribute('data-g6s'); render(); return; }
-    if (b.hasAttribute('data-img')) { salvarQuadro(b.closest('section.cartao')); return; }
+    if (b.hasAttribute('data-img')) { abrirEnvio(b.closest('section.cartao'), 'img'); return; }
     if (b.hasAttribute('data-envio')) { enviarParaPostagens(b.closest('section.cartao')); return; }
     if (b.hasAttribute('data-g6')) { st.g6 = b.getAttribute('data-g6'); render(); var s6 = document.querySelector('[data-sel="g6"]'); if (s6) s6.scrollIntoView({ block: 'center' }); return; }
     if (b.hasAttribute('data-ord')) { var k = b.getAttribute('data-ord'); if (st.ordEst === k) st.ordInv = !st.ordInv; else { st.ordEst = k; st.ordInv = k !== 'nome'; } render(); return; }
@@ -2611,14 +2999,14 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
         var it = plano[i++], el = peca(it);
         espera('Preparando o documento… ' + Math.round(100 * i / plano.length) + '%');
         if (!el) return proximo();
-        return window.html2canvas(el, { scale: 2, backgroundColor: '#ffffff', logging: false, ignoreElements: soBloco(el) }).then(function (cv) {
+        return fundosProntos().then(function () { redesenharEm(el); return window.html2canvas(el, { scale: 2, backgroundColor: '#ffffff', logging: false, ignoreElements: soBloco(el) }).then(function (cv) {
           var h = cv.height / cv.width * larg;
           if (livre) livre = false;
           else if (it.nova || y + h > Hp - 14) { if (pag > 1 || capa || sum || y > mg) rodape(); pdf.addPage(); pag++; y = mg; }
           if (h > Hp - 2 * mg - 8) { var hh = Hp - 2 * mg - 8, ww = cv.width / cv.height * hh; pdf.addImage(cv.toDataURL('image/jpeg', 0.9), 'JPEG', mg + (larg - ww) / 2, y, ww, hh); y += hh + 4; }
           else { pdf.addImage(cv.toDataURL('image/jpeg', 0.9), 'JPEG', mg, y, larg, h); y += h + 4; }
           return proximo();
-        });
+        }); });
       }
       function fim() { PDF_AND = false; DOC = false; REL_UF = ''; doc.innerHTML = ''; st.m3 = salvo.m3; st.m3uf = salvo.m3uf; st.m4 = salvo.m4; document.documentElement.setAttribute('data-theme', temaAntes || 'light'); espera(''); render(); }
       return Promise.resolve().then(proximo).catch(function (er) { fim(); alert('Não consegui gerar o documento: ' + er.message); });
@@ -3095,10 +3483,10 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
     return function () {
       var partes = (v.vis || []).map(function (p) {
         if (p.t === 'svg' || p.t === 'tab') return '<div class="env-p' + (p.t === 'tab' ? ' env-tab' : '') + '">' + p.html + '</div>';
-        if (p.t === 'img' && /^data:image\/png;base64,/.test(p.src || '')) return '<div class="env-p"><img src="' + p.src + '" alt="" style="width:100%;height:100%;object-fit:contain"></div>';
+        if (p.t === 'img' && /^data:image\/(png|jpeg);base64,/.test(p.src || '')) return '<div class="env-p"><img src="' + p.src + '" alt="" style="width:100%;height:100%;object-fit:contain"></div>';
         if (p.t === 'mapa' && p.n === N && p.idx && p.idx.length === N) {
           var id = 'sl' + (++MAPA_SLIDE);
-          MAPAS[id] = new Mapa(id, { cor: function (i) { var k = p.idx.charCodeAt(i) - 48; return k > 0 ? p.cores[k - 1] : null; }, dica: function () { return ''; }, estatico: true, uf: p.uf || null });
+          MAPAS[id] = new Mapa(id, { cor: function (i) { var k = p.idx.charCodeAt(i) - 48; return k > 0 ? p.cores[k - 1] : null; }, dica: function () { return ''; }, estatico: true, uf: p.uf || null, cam: p.cam || null });
           return '<div class="env-p"><div class="mapa-caixa" data-mapa="' + id + '" style="height:100%;width:100%;background:transparent"><canvas></canvas></div></div>';
         }
         return '';
@@ -3108,19 +3496,23 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
   }
   function lerEnviosP() { try { var x = JSON.parse(localStorage.getItem('virada-envios') || '[]'); return Array.isArray(x) ? x : []; } catch (e) { return []; } }
   function gravarEnviosP(l) { try { localStorage.setItem('virada-envios', JSON.stringify(l)); } catch (e) { /* sem armazenamento */ } }
-  function entradaDeEnvio(env, destino) {
-    return { u: novoU(), c: destino, o: null, tipo: 'vis', txt: { k: env.k || '', t: env.titulo || '', x: env.x || '', fonte: env.fonte || 'TSE' },
-      vis: { tipo: 'envio', vis: env.vis, leg: env.leg || [] } };
+  function entradaDeEnvio(env, destino) {   // lista de entradas: um pacote traz vários cards (visuais, números, ranking)
+    var cards = env.cards && env.cards.length ? env.cards : [{ tipo: 'vis', k: env.k, t: env.titulo, x: env.x, fonte: env.fonte, vis: env.vis, leg: env.leg }];
+    return cards.map(function (cd) {
+      var txt = { k: cd.k || env.k || '', t: cd.t || env.titulo || '', x: cd.x || '', fonte: cd.fonte || env.fonte || 'TSE' };
+      if (cd.tipo === 'num') { txt.n = cd.n || ''; return { u: novoU(), c: destino, o: null, tipo: 'num', txt: txt }; }
+      return { u: novoU(), c: destino, o: null, tipo: 'vis', txt: txt, vis: { tipo: 'envio', vis: cd.vis || [], leg: cd.leg || [] } };
+    });
   }
   function htmlRecebidos() {
     var l = lerEnviosP(); if (!l.length) return '';
     var cs = carrosseisEd(), opts = '<option value="*novo">Um carrossel novo</option>' + cs.map(function (c) { return '<option value="' + c.id + '">No fim de: ' + esc(c.titulo) + '</option>'; }).join('');
     return '<section class="cartao recebidos"><h3>Recebidos do painel A virada</h3><p class="sub">Gráficos e mapas enviados pelo botão "➜ Postagens" do painel A virada de 2026. Cada um vira um card; depois dá para editar os textos e marcar destaques. ' + l.length + ' na caixa.</p><div class="rec-lista">' +
       l.map(function (env) {
-        var s = slideDe(entradaDeEnvio(env, '*'));
-        return '<div class="rec-item"><div>' + previa(s, 'ig', 0, 0, 0.17) + '</div><div class="rec-info"><b>' + esc(env.titulo || 'Quadro') + '</b><small>' + esc(env.k || '') + ' · enviado ' + new Date(env.quando || 0).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + '</small>' +
+        var ents = entradaDeEnvio(env, '*'), s = slideDe(ents[0]);
+        return '<div class="rec-item"><div>' + previa(s, 'ig', 0, 0, 0.17) + '</div><div class="rec-info"><b>' + esc(env.titulo || 'Quadro') + '</b><small>' + (ents.length > 1 ? '<b>' + ents.length + ' cards</b> · ' : '') + esc(env.k || '') + ' · enviado ' + new Date(env.quando || 0).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + '</small>' +
           '<label class="rec-rot" for="rd-' + env.id + '">Colocar em</label><select id="rd-' + env.id + '">' + opts + '</select>' +
-          '<div class="ctl"><button class="btn btn-destaque" data-cacao="envusar" data-v="' + env.id + '">Criar o card</button><button class="btn" data-cacao="envdel" data-v="' + env.id + '">Descartar</button></div></div></div>';
+          '<div class="ctl"><button class="btn btn-destaque" data-cacao="envusar" data-v="' + env.id + '">' + (ents.length > 1 ? 'Criar os ' + ents.length + ' cards' : 'Criar o card') + '</button><button class="btn" data-cacao="envdel" data-v="' + env.id + '">Descartar</button></div></div></div>';
       }).join('') + '</div>' + (l.length > 1 ? '<div class="ctl"><button class="btn" data-cacao="envtodos">Descartar todos</button></div>' : '') + '</section>';
   }
   function usarEnvio(id, destino) {
@@ -3129,8 +3521,8 @@ main{max-width:1200px;margin:0 auto;padding:12px 24px 40px}
     if (destino === '*novo') {
       alvo = 'x' + Date.now().toString(36);
       var ex = lerExtras(); ex.unshift({ id: alvo, titulo: String(env.titulo || 'Card do painel A virada').slice(0, 80), legenda: '', pedido: 'enviado do painel A virada' }); gravarExtras(ex);
-      gravarCar(alvo, [entradaDeEnvio(env, alvo)]);
-    } else gravarCar(alvo, entradas(alvo).concat([entradaDeEnvio(env, alvo)]));
+      gravarCar(alvo, entradaDeEnvio(env, alvo));
+    } else gravarCar(alvo, entradas(alvo).concat(entradaDeEnvio(env, alvo)));
     gravarEnviosP(l.filter(function (x) { return x.id !== id; }));   // usado: sai da caixa
     return alvo;
   }
