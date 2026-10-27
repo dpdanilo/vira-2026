@@ -4,44 +4,42 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Vira 2026</title>
-<meta name="description" content="Painéis da eleição presidencial de 2026: A virada de 2026 e o resultado final do 2º turno, com dados do TSE e do IBGE.">
+<meta name="description" content="Painéis da eleição presidencial de 2026: A virada de 2026, o resultado do 2º turno e os painéis de postagens.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-:root{--fundo:#f4f1ea;--cartao:#fffdf8;--texto:#2a3441;--sec:#5b6573;--linha:#e2dccf;--dest:#3b6f8f}
-@media (prefers-color-scheme:dark){:root{--fundo:#161b21;--cartao:#1f262e;--texto:#e6e9ed;--sec:#a5afba;--linha:#2f3842;--dest:#7fb2d1}}
+:root{--fundo:#f4f1ea;--cartao:#fffdf8;--texto:#2a3441;--sec:#5b6573;--linha:#e2dccf;--dest:#3b6f8f;--dest-txt:#fff}
+@media (prefers-color-scheme:dark){:root{--fundo:#161b21;--cartao:#1f262e;--texto:#e6e9ed;--sec:#a5afba;--linha:#2f3842;--dest:#7fb2d1;--dest-txt:#10161c}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--fundo);color:var(--texto);font-family:'Public Sans',system-ui,sans-serif;line-height:1.5}
-main{max-width:760px;margin:0 auto;padding:48px 16px 32px}
-h1{font-size:clamp(1.8rem,5vw,2.4rem);font-weight:800;margin:0 0 6px;letter-spacing:-.01em}
-.sub{color:var(--sec);margin:0 0 32px}
-.cards{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
-a.card{display:block;background:var(--cartao);border:1px solid var(--linha);border-radius:12px;padding:22px 22px 20px;color:inherit;text-decoration:none;transition:border-color .15s,transform .15s}
-a.card:hover,a.card:focus-visible{border-color:var(--dest);transform:translateY(-2px);outline:none}
-.card h2{font-size:1.2rem;margin:0 0 8px;font-weight:800}
-.card p{margin:0 0 14px;color:var(--sec);font-size:.95rem}
-.card span{color:var(--dest);font-weight:600}
-footer{color:var(--sec);font-size:.82rem;margin-top:40px}
+body{margin:0;min-height:100vh;background:var(--fundo);color:var(--texto);font-family:'Public Sans',system-ui,sans-serif;line-height:1.45;display:flex;justify-content:center}
+main{width:100%;max-width:520px;padding:56px 16px 32px;text-align:center}
+.selo{width:84px;height:84px;margin:0 auto 18px;border-radius:50%;background:var(--dest);color:var(--dest-txt);display:grid;place-items:center;font-weight:800;font-size:1.5rem;letter-spacing:-.02em}
+h1{font-size:1.6rem;font-weight:800;margin:0 0 6px}
+.sub{color:var(--sec);margin:0 0 30px;font-size:.95rem}
+nav{display:flex;flex-direction:column;gap:14px}
+a.btn{display:block;background:var(--cartao);border:1.5px solid var(--linha);border-radius:14px;padding:16px 20px;color:inherit;text-decoration:none;transition:border-color .15s,transform .15s,box-shadow .15s}
+a.btn:hover,a.btn:focus-visible{border-color:var(--dest);transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.07);outline:none}
+a.btn strong{display:block;font-size:1.05rem;font-weight:800}
+a.btn span{display:block;color:var(--sec);font-size:.86rem;margin-top:2px}
+.grupo{color:var(--sec);font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin:14px 0 -4px}
+footer{color:var(--sec);font-size:.78rem;margin-top:36px}
 </style>
 </head>
 <body>
 <main>
+  <div class="selo" aria-hidden="true">26</div>
   <h1>Vira 2026</h1>
-  <p class="sub">Eleição para Presidente de 2026, com dados oficiais do TSE e do IBGE.</p>
-  <div class="cards">
-    <a class="card" href="virada/">
-      <h2>A virada de 2026</h2>
-      <p>A primeira virada no 2º turno desde 2002: onde aconteceu e quem virou.</p>
-      <span>Abrir o estudo →</span>
-    </a>
-    <a class="card" href="2turno/">
-      <h2>Resultado do 2º turno</h2>
-      <p>O resultado final por estado e município, comparado com o 1º turno, 2022 e 2014.</p>
-      <span>Abrir o painel →</span>
-    </a>
-  </div>
-  <footer>Fontes: Dados Abertos do TSE e IBGE.</footer>
+  <p class="sub">Eleição para Presidente de 2026 em painéis</p>
+  <nav>
+    <div class="grupo">Painéis</div>
+    <a class="btn" href="virada/"><strong>A virada de 2026</strong><span>Onde a virada aconteceu e quem virou</span></a>
+    <a class="btn" href="2turno/"><strong>Resultado do 2º turno</strong><span>Por estado e município, comparado com 2022 e 2014</span></a>
+    <div class="grupo">Postagens</div>
+    <a class="btn" href="postagens/"><strong>Painel de Postagens</strong><span>Carrosséis, fios e reels do 2º turno</span></a>
+    <a class="btn" href="postagens-pessoal/"><strong>Postagens (pessoal)</strong><span>Versão em preto e branco para perfil pessoal</span></a>
+  </nav>
+  <footer>Dados oficiais do TSE e do IBGE</footer>
 </main>
 </body>
 </html>
