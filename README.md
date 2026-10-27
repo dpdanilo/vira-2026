@@ -1,7 +1,6 @@
-﻿# Vira 2026 — apuração ao vivo do 2º turno (Presidente)
+# Vira 2026
 
-Painel: abra `index.html` pelo endereço do GitHub Pages.
+Painéis da eleição presidencial de 2026, feitos a partir dos Dados Abertos do TSE e do IBGE.
 
-- 1º turno de 2026 e 2º turnos de 2022 e 2014: pasta `aovivo_dados/`, gerada a partir dos Dados Abertos do TSE e do IBGE e conferida com os números oficiais.
-- 2º turno de 2026: lido pelo navegador de cada visitante direto em resultados.tse.jus.br.
-- `?demo=1` simula a apuração; `?ensaio=1` lê os arquivos reais do 1º turno no lugar do 2º.
+- **A virada de 2026**: https://dpdanilo.github.io/vira-2026/virada/
+- **Resultado do 2º turno 2026**: https://dpdanilo.github.io/vira-2026/2turno/
